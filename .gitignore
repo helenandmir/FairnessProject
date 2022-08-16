@@ -1,0 +1,11 @@
+EditData/venv
+FairKCenter/venv
+Similarity/venv
+venv/
+
+DataSet
+DataTemp
+
+.idea
+.venv
+*.pyc
