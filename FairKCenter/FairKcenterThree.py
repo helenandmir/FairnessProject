@@ -16,8 +16,8 @@ import CreateGraph
 import matplotlib.pyplot as plt
 
 
-fileA = "../DataSet/Point.csv"
-fileB = "../DataSet/Point_radius_100.csv"
+fileA = "../DataSet/Resturant_review.csv"
+fileB = "../DataSet/Resturant_radius_100.csv"
 
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
@@ -156,6 +156,7 @@ class FairKCenter:
         print("Its alpha is {}, Its radius is {}.".format(dic_alpha[max_dis], self.dic_id_NR[max_dis]))
         print("Its distance from the nearest center {} is {}.".format(self.dic_close_center[max_dis],
                                                                       self.dic_dis_to_close_center[max_dis]))
+        print(self.dic_center_id_NR.keys())
         print('time to "results2" end is {}'.format(time.time() - start_time))
 
 
@@ -238,7 +239,7 @@ class FairKCenter:
 def main() :
     start_time = time.time()
 
-    k = 100
+    k = 1000
     k_temp =k
     col_list = ["Colors"]
     df1 = pd.read_csv(fileA, usecols=col_list)
