@@ -14,10 +14,9 @@ from scipy.spatial import KDTree
 import math
 import CreateGraph
 import matplotlib.pyplot as plt
-
-
-fileA = "../DataSet/Resturant_review.csv"
-fileB = "../DataSet/Resturant_radius_100.csv"
+import MaxMatching
+fileA = "../DataSet/Crime.csv"
+fileB = "../DataSet/Crime_radius_100.csv"
 
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
@@ -86,7 +85,38 @@ class FairKCenter:
         print('time to "two_fair_k_center" end is {}'.format(time.time() - start_time))
         print("number of center is {}".format(len(self.dic_center_id_NR)))
         return len(self.dic_center_id_NR)
+    def fair_k_2(self, alpha):
+        balance = len(self.df.ID)/self.K
+        start_time = time.time()
+        self.dic_id_NR = dict(sorted(self.dic_id_NR.items(), key=lambda item: item[1]))
+        temp_dic_id_NR = self.dic_id_NR.copy()
 
+        while len(self.dic_center_id_NR.keys()) != self.K and len(temp_dic_id_NR.keys())!=0:
+            #print(len(self.dic_center_id_NR.keys()))
+            p = min(temp_dic_id_NR, key=temp_dic_id_NR.get)
+            self.dic_center_id_NR[p] = self.dic_id_NR[p]
+            self.dic_center_loc[p] = self.dic_id_loc[p]
+            self.dic_center_ball[p] = list([])
+            self.dic_dis_to_close_center[p] = 0
+            temp_dic_id_NR.pop(p)
+
+            ##########
+            list_t = list(temp_dic_id_NR.keys())
+            tuple_color = tuple(zip(list(self.df.X[list_t]), list(self.df.Y[list_t]),list(self.df.Z[list_t])))
+            tree_c = KDTree(np.array(list(tuple_color)))
+            n = len(list_t)
+            dist_c, ind_c = tree_c.query([[self.df.X[p], self.df.Y[p],self.df.Z[p]]], n)
+            for dis,i in zip(dist_c[0],ind_c[0]):
+                if dis <= self.dic_id_NR[list_t[i]] +self.dic_id_NR[p]:
+                    temp_dic_id_NR.pop(list_t[i])
+
+
+
+            #########
+
+        print('time to "two_fair_k_center" end is {}'.format(time.time() - start_time))
+        print("number of center is {}".format(len(self.dic_center_id_NR)))
+        return len(self.dic_center_id_NR)
     def two_fair_k_center(self, alpha):
         """
         The main algorithm
@@ -185,21 +215,24 @@ class FairKCenter:
         plt.scatter(x_c, y_c, c=c_c, marker='*',s= size_c,edgecolors='black')
 
         plt.show()
-    def replace_center(self,dic_color_centers):
-        #self.dic_center_id_NR =[]
-        ball_no_center =[]
-        center_list = self.dic_center_id_NR.copy().keys()
-        for c in center_list:
-            if c in dic_color_centers.keys():
-                new_center = [j for j in self.dic_center_ball[c] if self.df.Colors[j] == dic_color_centers[c]]
-                self.dic_center_id_NR.pop(c)
-                self.dic_center_id_NR[new_center[0]] = self.dic_id_NR[new_center[0]]
-                self.dic_center_ball[new_center[0]]=self.dic_center_ball[c]
-                self.dic_center_ball.pop(c)
+    def replace_center(self,new_center):
+        temp_dic = self.dic_center_id_NR.copy()
+
+        for i in temp_dic:
+            if i in new_center.keys():
+                self.dic_center_id_NR.pop(i)
+                self.dic_center_id_NR[new_center[i]] = self.dic_id_NR[new_center[i]]
+                self.dic_center_loc.pop(i)
+                self.dic_center_loc[new_center[i]] = self.dic_id_loc[new_center[i]]
+
+                self.dic_center_ball[new_center[i]] = self.dic_center_ball[i]
+                self.dic_center_ball.pop(i)
             else:
-                ball_no_center.append(c)
-                self.dic_center_ball.pop(c)
-                self.dic_center_id_NR.pop(c)
+                self.dic_center_id_NR.pop(i)
+                self.dic_center_loc.pop(i)
+                self.dic_center_ball.pop(i)
+
+
 
     def add_center(self,color_center):
         point_in_balls =[]
@@ -239,7 +272,7 @@ class FairKCenter:
 def main() :
     start_time = time.time()
 
-    k = 1000
+    k = 100
     k_temp =k
     col_list = ["Colors"]
     df1 = pd.read_csv(fileA, usecols=col_list)
@@ -281,17 +314,18 @@ def main() :
     fair.fair_k(0.01)
     #fair.two_fair_k_center(0.01)
 
+
     fair.initialization_ball_center2()
+    C = MaxMatching.CR(fair.req_dic, fileA, fair.dic_center_ball)
+    C.add_nodes1()
+    C.add_nodes2()
+    C.colors_in_balls()
+    C.add_edegs()
+    new_center = C.create_graph()
 
-    C = CreateGraph.CR(fair.req_dic,fileA,fair.dic_center_ball)
-    C.reduse_points()
-    C.add_points()
-    C.create_nodes()
-    C.create_edges()
-    C.create_graph()
 
-    print(C.dic_new_center)
-    fair.replace_center(C.dic_new_center)
+    print(new_center)
+    fair.replace_center(new_center)
     print([fair.df.Colors[id] for id in fair.dic_center_id_NR.keys()])
     #fair.add_center(IS.dic_color_center.keys())
     fair.results2()

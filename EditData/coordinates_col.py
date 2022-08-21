@@ -15,7 +15,7 @@ R=6373.0
 X=[]
 Y=[]
 Z=[]
-file_name = "Point.csv"
+file_name = "../DataSet/Listings.csv"
 df = pd.read_csv(file_name, usecols=["ID","X", "Y","Z","Longitude","Latitude"])
 print("create X,Y,Z lists")
 for id in list(df.ID):

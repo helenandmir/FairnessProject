@@ -4,8 +4,8 @@ import math
 import numpy as np
 import matplotlib
 
-file_name ="Point.csv"
-col_name = "num_categories"
+file_name ="../DataSet/Listings.csv"
+col_name = "Colors"
 df = pd.read_csv(file_name)
 print(set(list(df.Colors)))
 org_type_list =df[col_name]

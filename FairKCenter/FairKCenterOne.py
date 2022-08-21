@@ -11,8 +11,8 @@ import random
 from matplotlib import pyplot as plt, colors
 from math import sin, cos, sqrt, atan2, radians
 
-fileA = "../DataSet/Point.csv"
-fileB = "../DataSet/Point_radius_100.csv"
+fileA = "../DataSet/Listings.csv"
+fileB = "../DataSet/Listings_radius_10000.csv"
 class FairKCenter:
     # global
 
@@ -40,7 +40,7 @@ class FairKCenter:
     def fair_k(self, alpha):
         balance = len(self.df.ID)/self.K
         start_time = time.time()
-        self.dic_id_NR = dict(sorted(self.dic_id_NR.items(), key=lambda item: item[1]))
+        #self.dic_id_NR = dict(sorted(self.dic_id_NR.items(), key=lambda item: item[1]))
         temp_dic_id_NR = self.dic_id_NR.copy()
         temp_dic_id_NR2 = self.dic_id_NR.copy()
 
@@ -53,12 +53,47 @@ class FairKCenter:
             self.dic_center_ball[p] = list([])
             self.dic_dis_to_close_center[p] = 0
             temp_dic_id_NR.pop(p)
+
             for i in temp_dic_id_NR2:
                 dis = distance.euclidean(self.dic_id_loc[i], self.dic_center_loc[p])
                 if dis <= self.dic_id_NR[i] + self.dic_center_id_NR[p]:  # alpha*
                     if i in temp_dic_id_NR:
                        temp_dic_id_NR.pop(i)
+
             temp_dic_id_NR2 = temp_dic_id_NR.copy()
+        print('time to "two_fair_k_center" end is {}'.format(time.time() - start_time))
+        print("number of center is {}".format(len(self.dic_center_id_NR)))
+        return len(self.dic_center_id_NR)
+
+    def fair_k_2(self, alpha):
+        balance = len(self.df.ID)/self.K
+        start_time = time.time()
+        self.dic_id_NR = dict(sorted(self.dic_id_NR.items(), key=lambda item: item[1]))
+        temp_dic_id_NR = self.dic_id_NR.copy()
+
+        while len(self.dic_center_id_NR.keys()) != self.K and len(temp_dic_id_NR.keys())!=0:
+            #print(len(self.dic_center_id_NR.keys()))
+            p = min(temp_dic_id_NR, key=temp_dic_id_NR.get)
+            self.dic_center_id_NR[p] = self.dic_id_NR[p]
+            self.dic_center_loc[p] = self.dic_id_loc[p]
+            self.dic_center_ball[p] = list([])
+            self.dic_dis_to_close_center[p] = 0
+            temp_dic_id_NR.pop(p)
+
+            ##########
+            list_t = list(temp_dic_id_NR.keys())
+            tuple_color = tuple(zip(list(self.df.X[list_t]), list(self.df.Y[list_t]),list(self.df.Z[list_t])))
+            tree_c = KDTree(np.array(list(tuple_color)))
+            n = len(list_t)
+            dist_c, ind_c = tree_c.query([[self.df.X[p], self.df.Y[p],self.df.Z[p]]], n)
+            for dis,i in zip(dist_c[0],ind_c[0]):
+                if dis <= self.dic_id_NR[list_t[i]] +self.dic_id_NR[p]:
+                    temp_dic_id_NR.pop(list_t[i])
+
+
+
+            #########
+
         print('time to "two_fair_k_center" end is {}'.format(time.time() - start_time))
         print("number of center is {}".format(len(self.dic_center_id_NR)))
         return len(self.dic_center_id_NR)
@@ -127,6 +162,7 @@ class FairKCenter:
         print("Its alpha is {}, Its radius is {}.".format(dic_alpha[max_dis], self.dic_id_NR[max_dis]))
         print("Its distance from the nearest center {} is {}.".format(self.dic_close_center[max_dis],
                                                                       self.dic_dis_to_close_center[max_dis]))
+        print(self.dic_center_id_NR.keys())
 
         print('time to "results2" end is {}'.format(time.time() - start_time))
 
@@ -171,9 +207,9 @@ class FairKCenter:
 def main():
     start_time = time.time()
 
-    fair = FairKCenter(100)
+    fair = FairKCenter(10000)
     fair.initialization_NR_dic()
-    fair.fair_k(1.399)
+    fair.fair_k_2(1.399)
     #fair.two_fair_k_center(1.399)  # 1.359
     # fair.save_group()
     fair.results2()

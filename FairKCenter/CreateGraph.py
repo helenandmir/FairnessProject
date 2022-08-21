@@ -2,7 +2,7 @@ import pandas as pd
 import sys
 import networkx
 from networkx.algorithms.mis import maximal_independent_set
-sys.setrecursionlimit(5000)
+sys.setrecursionlimit(50000)
 class CR:
     def __init__(self, req_dic, file,ball_dic):
         self.dic_ball_centers = ball_dic
