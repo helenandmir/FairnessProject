@@ -15,8 +15,8 @@ import math
 import CreateGraph
 import matplotlib.pyplot as plt
 import MaxMatching
-fileA = "../DataSet/Crime.csv"
-fileB = "../DataSet/Crime_radius_100.csv"
+fileA = "../DataSet/Listings.csv"
+fileB = "../DataSet/Listings_radius_100.csv"
 
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
@@ -172,7 +172,19 @@ class FairKCenter:
     def results2(self):
         self.update_dis_from_center()
         start_time=time.time()
-
+        # ##########
+        # dic_alpha={}
+        # for k,v in self.dic_id_NR.items():
+        #     if self.dic_dis_to_close_center[k] == 0 and  self.dic_id_NR[k]==0:
+        #         print("if")
+        #         dic_alpha[k] = 1
+        #     elif self.dic_id_NR[k] == 0:
+        #         print("######################elif###########3")
+        #         dic_alpha[k] = math.inf
+        #     else:
+        #         dic_alpha[k]=self.dic_dis_to_close_center[k]/ self.dic_id_NR[k]
+        #
+        # ##########
         dic_alpha = dict([(k,self.dic_dis_to_close_center[k]/ self.dic_id_NR[k]) for k, v in self.dic_id_NR.items()])
         max_key = max(dic_alpha, key=lambda x: dic_alpha[x])
         print("The point with maximum alpha is:{}".format(max_key))
@@ -186,6 +198,11 @@ class FairKCenter:
         print("Its alpha is {}, Its radius is {}.".format(dic_alpha[max_dis], self.dic_id_NR[max_dis]))
         print("Its distance from the nearest center {} is {}.".format(self.dic_close_center[max_dis],
                                                                       self.dic_dis_to_close_center[max_dis]))
+
+        print("#################")
+        max_key = max(self.dic_id_NR, key=lambda x: self.dic_id_NR[x])
+        print("The point with maximum NR is {} is NR is {}".format(max_key, self.dic_id_NR[max_key] ))
+
         print(self.dic_center_id_NR.keys())
         print('time to "results2" end is {}'.format(time.time() - start_time))
 
@@ -283,27 +300,28 @@ def main() :
     req_dic = {}
     center_colors = {}
     dic_orig = {}
-    # #Creating relative requirements dictionary
-    #
-    # for c in color_list:
-    #     req_dic[c]= np.ceil((list(df1.Colors).count(c)/len(df1.Colors))*k)
-    #     if req_dic[c] < 2:
-    #         req_dic[c]=0
-    #     dic_orig[c]=(list(df1.Colors).count(c)/len(df1.Colors))*k
-    #     center_colors[c]=0
-    #Creating random requirements dictionary
-    while len(color_list) > 0:
-        c = random.choice(color_list)
-        range_num = min(list(df1.Colors).count(c), k_temp)
-        num_random = random.randint(0, range_num)
-        req_dic[c] = num_random
-        k_temp -= num_random
-        center_colors[c] = 0
-        color_list.remove(c)
+    #Creating relative requirements dictionary
+
+    for c in color_list:
+        req_dic[c]= np.ceil((list(df1.Colors).count(c)/len(df1.Colors))*k)
+        if req_dic[c] < 3:
+            req_dic[c]=0
+        dic_orig[c]=(list(df1.Colors).count(c)/len(df1.Colors))*k
+        center_colors[c]=0
+    req_dic["purple"] =5
+    # #Creating random requirements dictionary
+    # while len(color_list) > 0:
+    #     c = random.choice(color_list)
+    #     range_num = min(list(df1.Colors).count(c), k_temp)
+    #     num_random = random.randint(0, range_num)
+    #     req_dic[c] = num_random
+    #     k_temp -= num_random
+    #     center_colors[c] = 0
+    #     color_list.remove(c)
 
 
 
-
+    print(sum(req_dic.values()))
     print("requirement dictionary:")
     print(req_dic)
     color_list = list(df1.Colors)#list(matplotlib.colors.cnames.keys())[0:num_type]
@@ -311,7 +329,7 @@ def main() :
     fair = FairKCenter(req_dic,color_list,k)
     fair.initialization_NR_dic(list(fair.df.ID))
 
-    fair.fair_k(0.01)
+    fair.fair_k_2(0.01)
     #fair.two_fair_k_center(0.01)
 
 

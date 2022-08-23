@@ -11,8 +11,8 @@ import random
 from matplotlib import pyplot as plt, colors
 from math import sin, cos, sqrt, atan2, radians
 
-fileA = "../DataSet/Listings.csv"
-fileB = "../DataSet/Listings_radius_10000.csv"
+fileA = "../DataSet/Point.csv"
+fileB = "../DataSet/Point_radius_100.csv"
 class FairKCenter:
     # global
 
@@ -162,6 +162,10 @@ class FairKCenter:
         print("Its alpha is {}, Its radius is {}.".format(dic_alpha[max_dis], self.dic_id_NR[max_dis]))
         print("Its distance from the nearest center {} is {}.".format(self.dic_close_center[max_dis],
                                                                       self.dic_dis_to_close_center[max_dis]))
+        print("#################")
+        max_key = max(self.dic_id_NR, key=lambda x: self.dic_id_NR[x])
+        print("The point with maximum NR is {} is NR is {}".format(max_key, self.dic_id_NR[max_key]))
+
         print(self.dic_center_id_NR.keys())
 
         print('time to "results2" end is {}'.format(time.time() - start_time))
@@ -207,7 +211,7 @@ class FairKCenter:
 def main():
     start_time = time.time()
 
-    fair = FairKCenter(10000)
+    fair = FairKCenter(100)
     fair.initialization_NR_dic()
     fair.fair_k_2(1.399)
     #fair.two_fair_k_center(1.399)  # 1.359

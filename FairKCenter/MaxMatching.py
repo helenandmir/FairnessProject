@@ -22,7 +22,7 @@ class CR:
 
     def add_nodes1(self):
         for i in self.dic_colors.keys():
-            list_temp = [i+str(j) for j in range(self.dic_colors[i])]
+            list_temp = [i + str(j) for j in range(int(self.dic_colors[i]))]
             self.list_nodes1 = self.list_nodes1+list_temp
     def add_nodes2(self):
         for i in self.dic_ball_centers:

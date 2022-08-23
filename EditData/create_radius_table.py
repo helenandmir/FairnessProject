@@ -14,8 +14,8 @@ import geopy.distance
 import pandas as pd
 import csv
 
-fileA ="../DataSet/Listings.csv"
-fileB ="../DataSet/Listings_radius_10000.csv"
+fileA ="../DataSet/Banks.csv"
+fileB ="../DataSet/Banks_radius_1000.csv"
 class CreateDataTable:
     def __init__(self,radius_type,df_from,col_from,df_to,colors,k):
         self.dic_id_NR = {}  # A dictionary that holds the neighborhood radius for each point
@@ -113,7 +113,7 @@ def main():
     header = next(csvreader)
     list_header = list(header)
     t = CreateDataTable(2, fileA, ["ID", "X", "Y", "Z", "Colors"], fileB,
-                        list_header[2:len(list_header)], 10000)
+                        list_header[2:len(list_header)], 1000)
     t.initialization_dic_loc_and_dis()
     t.writing_to_table()
 

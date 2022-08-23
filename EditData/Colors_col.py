@@ -4,8 +4,8 @@ import math
 import numpy as np
 import matplotlib
 
-file_name ="../DataSet/Listings.csv"
-col_name = "Colors"
+file_name ="Crime.csv"
+col_name = "OFFENSE_CODE"
 df = pd.read_csv(file_name)
 print(set(list(df.Colors)))
 org_type_list =df[col_name]
