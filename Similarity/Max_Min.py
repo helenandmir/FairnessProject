@@ -1,29 +1,35 @@
+from scipy.optimize import linear_sum_assignment
+import pandas as pd
 import numpy as np
 import time
-import pandas as pd
+import matplotlib.pyplot as plt
 
-class Max_Min:
-    # global
-    def __init__(self,req_dic):
+file1 ="../DataSet/Banks.csv"
+file2 ="../DataSet/Banks_group_100_2.csv"
+
+class MaxSum:
+    def __init__(self,req_dic,dic_center_and_colors):
         self.req_dic = req_dic
-        self.df_group = pd.read_csv("group.csv")
-        self.original_matrix = np.array(self.df_group[req_dic.keys()])
+        self.df2 = pd.read_csv(file2)
+        self.df1 = pd.read_csv(file1)
+        self.list_center =list(dic_center_and_colors.keys())
+        self.list_colors =[]
+        self.original_matrix = np.array(self.df2)
         self.Matrix =list([])
-        self.Matrix2 =list([])
-        self.row_zero ={}
-        self.col_zero ={}
-        self.num_row =0
-        self.num_col = 0
-
-    def matrix_adaptation_requirements(self):
-        self.Matrix = list([])
         for i in self.req_dic:
-            while self.req_dic[i] != 0:
-                self.Matrix.append(list(self.df_group[i]))
-                self.req_dic[i] -= 1
-        self.Matrix = np.array((self.Matrix)).transpose()
-        self.Matrix= self.Matrix/ self.Matrix.sum(axis=1)[:, None]
+             while self.req_dic[i]!=0:
+                      self.Matrix.append(list(self.df2[i]))
+                      self.req_dic[i]-=1
+                      self.list_colors.append(i)
+        self.Matrix =np.array((self.Matrix)).transpose()
+        self.Matrix2 = self.Matrix.copy()
+        self.num_row = len(self.Matrix)
+        self.num_col = len(self.Matrix)
+        self.row_zero = {}
+        self.col_zero = {}
+
     def sort_indexs_matrix(self):
+        # sort the matrix cells
         self.Matrix = self.Matrix.reshape(-1)
         self.Matrix[self.Matrix == 0] = -1
         sort_arr = np.sort(self.Matrix)
@@ -35,25 +41,15 @@ class Max_Min:
             count += 1
             sort_arr = np.delete(sort_arr, np.where(sort_arr == max_num))
         self.Matrix = self.Matrix.reshape(self.num_row, self.num_col)
-    def initialization(self):
-        self.matrix_adaptation_requirements()
-        self.num_row = len(self.Matrix)
-        self.num_col = len(self.Matrix[0])
-        self.Matrix2 = self.Matrix.copy()
-        self.sort_indexs_matrix()
-
-        print(self.Matrix)
 
     def main_algo(self):
         self.updste_row_zero()
-        while(self.end_check() == False):
+        while (self.end_check() == False):
             self.Matrix = self.Matrix.reshape(-1)
             min_val = min(self.Matrix[np.nonzero(self.Matrix)])
-            self.Matrix =  np.array([i-min_val if i >0 else i for i in self.Matrix])
+            self.Matrix = np.array([i - min_val if i > 0 else i for i in self.Matrix])
             self.updste_row_zero()
             self.updste_col_zero()
-
-            print(self.Matrix)
 
 
     def updste_col_zero(self):
@@ -70,6 +66,7 @@ class Max_Min:
 
 
     def end_check(self):
+        # check if there is "zero's cover"
         if len(self.row_zero) == len(self.Matrix) and len(self.col_zero) == len(self.Matrix):
             if (self.coverage_test()==True):
                 return True
@@ -123,64 +120,74 @@ class Max_Min:
         return False
 
     def get_result(self):
-        dic_result ={}
+        dic_result = {}
         list_col = list([])
-        while(len(self.row_zero)!=0):
+        while (len(self.row_zero) != 0):
+            # row with the fewest zeros
             min_row = min(self.row_zero, key=self.row_zero.get)
             col = [i for i in range(self.num_col) if (self.Matrix[min_row, i] == 0 and i not in list_col)]
             min_col = 1000
             c = -1
+            # column with the fewest zeros (corresponding to the zeros in the row)
             for i in col:
                 if self.col_zero[i] < min_col:
                     min_col = self.col_zero[i]
-                    c=i
+                    c = i
             dic_result[min_row] = c
             list_col.append(c)
             self.row_zero.pop(min_row)
-        print(dic_result)
-        print(self.get_result2(dic_result))
-        print(self.Matrix2)
+        #print(dic_result)
+        return dic_result
+    def get_min_source(self,dic_center_and_colors):
+        list_colors = list(self.req_dic.keys())
+        list_sours_res =[]
+        list_centers =list(dic_center_and_colors.keys())
+        for i in dic_center_and_colors.keys():
+            list_sours_res.append(self.original_matrix[list_centers.index(i),list_colors.index(dic_center_and_colors[i])+1])
+        print("list similarity of source is {}".format(list_sours_res))
+        print("Min similarity in source is {}".format(min(list_sours_res)))
+    def get_result2(self, dic_result):
+        min_r = 2
+        result_list = [self.Matrix2[i, dic_result[i]] for i in dic_result.keys()]
 
-    def get_result2(self,dic_result):
-        min_r =2
+        dic_center_color={}
         for i in dic_result.keys():
-            if self.Matrix2[i,dic_result[i]] < min_r:
-                min_r = self.Matrix2[i,dic_result[i]]
+            dic_center_color[self.list_center[i]]=self.list_colors[dic_result[i]]
+        for i in dic_result.keys():
+            if self.Matrix2[i, dic_result[i]] < min_r:
+                min_r = self.Matrix2[i, dic_result[i]]
+        print("->>>>>>***<<<<<<-")
+        print("MaxMin is {}".format(min_r))
+        print("list similarity  is {}".format(result_list))
+        print("balls and colors match :{}".format(dic_center_color))
         return min_r
 
-
 def main() :
-    #req_dic = {"green": 1, "orange": 0, "blue": 2, "red": 1}
-    #req_dic = {"blue":1,"red":1,"pink":1,"yellow":1,"green":1,"orange":1}
-    #req_dic = {"blue":1, "red":1, "yellow":1, "orange":1}
-    # req_dic={'cornflowerblue': 0, 'darkgoldenrod': 1, 'blueviolet': 0, 'azure': 0, 'burlywood': 0, 'cyan': 0, 'cornsilk': 10,
-    #  'darkred': 0, 'darkslateblue': 1, 'darksalmon': 0, 'darkcyan': 0, 'coral': 0, 'brown': 0, 'darkturquoise': 0,
-    #  'deeppink': 0, 'chartreuse': 0, 'blue': 10, 'darkgray': 5, 'darkmagenta': 0, 'darkseagreen': 5, 'darkgrey': 0,
-    #  'blanchedalmond': 0, 'aquamarine': 5, 'darkkhaki': 0, 'deepskyblue': 0, 'beige': 0, 'darkorange': 0, 'aqua': 10,
-    #  'aliceblue': 0, 'darkgreen': 5, 'crimson': 0, 'dimgray': 0, 'bisque': 0, 'darkblue': 0, 'black': 10,
-    #  'darkorchid': 0, 'antiquewhite': 0, 'darkslategray': 0, 'chocolate': 0, 'darkviolet': 0, 'cadetblue': 0,
-    #  'darkslategrey': 0, 'darkolivegreen': 0}
-    req_dic = {'cornflowerblue': 0, 'darkgoldenrod': 0, 'blueviolet': 0, 'azure': 0, 'burlywood': 0, 'cyan': 0,
-               'cornsilk': 0,
-               'darkred': 0, 'darkslateblue': 0, 'darksalmon': 0, 'darkcyan': 0, 'coral': 0, 'brown': 0,
-               'darkturquoise': 0,
-               'deeppink': 0, 'chartreuse': 0, 'blue': 0, 'darkgray': 0, 'darkmagenta': 0, 'darkseagreen': 0,
-               'darkgrey': 0,
-               'blanchedalmond': 0, 'aquamarine': 0, 'darkkhaki': 0, 'deepskyblue': 0, 'beige': 0, 'darkorange': 0,
-               'aqua': 40,
-               'aliceblue': 10, 'darkgreen': 0, 'crimson': 0, 'dimgray': 0, 'bisque': 0, 'darkblue': 0, 'black': 12,
-               'darkorchid': 0, 'antiquewhite': 0, 'darkslategray': 0, 'chocolate': 0, 'darkviolet': 0, 'cadetblue': 0,
-               'darkslategrey': 0, 'darkolivegreen': 0}
-    # for i in req_dic.keys():
-    #     req_dic[i] = 1
-    # req_dic['aqua'] =11
-    # req_dic['blanchedalmond'] = 10
-    H = Max_Min(req_dic)
-    H.initialization()
+    #requairment
+    df2 = pd.read_csv(file2)
+    df1 = pd.read_csv(file1)
+    color_list = pd.read_csv(file2, nrows=0).columns.tolist()
+    color_list.remove("ID")
+    req_dic = {}
+    dic_center_and_colors = {}
+    for i in color_list:
+        req_dic[i] = 0
+    for i in df2.ID:
+        dic_center_and_colors[i] = df1.Colors[i]
+        c = df1.Colors[i]
+        req_dic[c] = req_dic[c] + 1
+
+    print("req_dic {}".format(req_dic))
+    print(dic_center_and_colors)
+    H = MaxSum(req_dic,dic_center_and_colors)
+    H.sort_indexs_matrix()
     H.main_algo()
-    H.get_result()
+    dic_result = H.get_result()
+    print("->>>>>>***<<<<<<-")
 
+    H.get_min_source(dic_center_and_colors)
 
+    H.get_result2(dic_result)
 if __name__ == '__main__':
     start_time = time.time()
     main()

@@ -4,8 +4,8 @@ import math
 import numpy as np
 import matplotlib
 
-file_name ="Crime.csv"
-col_name = "OFFENSE_CODE"
+file_name ="../DataSet/Banks.csv"
+col_name = "service"
 df = pd.read_csv(file_name)
 print(set(list(df.Colors)))
 org_type_list =df[col_name]
@@ -21,6 +21,6 @@ new_color_list=[]
 for t in df[col_name]:
      new_color_list.append(color_list[org_type_list.index(t)])
 
-df[col_name] = new_color_list
+df["Colors2"] = new_color_list
 df.to_csv(file_name)
 df.head()
