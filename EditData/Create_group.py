@@ -10,12 +10,13 @@ from sklearn.neighbors import KDTree
 import numpy as np
 fileA ="../DataSet/Banks.csv"
 fileB="../DataSet/Banks_radius_100.csv"
-fileC ="../DataSet/banks_group_100_2.csv"
+fileC ="../DataSet/banks_group_100_3_num.csv"
 
 df1 = pd.read_csv(fileA)
 df2 = pd.read_csv(fileB)
 df3 = pd.read_csv(fileC)
-center_list=[11773, 11836, 15450, 11660, 10664, 10326, 23825, 15124, 10322, 25701, 10587, 11177, 10837, 15785, 15709, 11179, 11137, 27370, 18728]
+#center_list=[11773, 11836, 15450, 11660, 10664, 10326, 23825, 15124, 10322, 25701, 10587, 11177, 10837, 15785, 15709, 11179, 11137, 27370, 18728]
+center_list=[18904, 19007, 18898, 5309, 27934, 10773, 27740, 18914, 3388, 3827, 18316, 3602, 10948, 15774, 4660, 4545, 26799, 4751, 11147, 11038, 18382, 4540, 27353, 10843, 27588, 4176, 27066, 30635, 25080, 25201, 6046, 22550, 7131, 15657, 12548, 25074, 1862, 24998, 8151, 21757, 12466, 22150, 13611, 1129, 13514, 30959, 16277, 17227, 21053, 1212, 1381, 30696, 25517, 24218, 2163, 25550, 13272, 7601, 31267, 17920, 1243, 7660, 31138, 2845, 24558, 32020, 7746]
 color_list = df3.columns.tolist()
 color_list.remove("ID")
 # df3["ID"] = center_list
@@ -44,9 +45,9 @@ for c in center_list:
 for c in center_list:
     dic_list_num_colors[c] =[c]
     for color in color_list:
-        #dic_list_num_colors[c].append(len([j for j in dic_center_ball[c] if df1.Colors[j] ==color]))
+        dic_list_num_colors[c].append(len([j for j in dic_center_ball[c] if df1.Colors[j] ==color]))
 
-        dic_list_num_colors[c].append(len([j for j in dic_center_ball[c] if df1.Colors[j] ==color])/dic_num_center_ball[c])
+        #dic_list_num_colors[c].append(len([j for j in dic_center_ball[c] if df1.Colors[j] ==color])/dic_num_center_ball[c])
 
 for c in center_list:
     df3.loc[center_list.index(c),:] = dic_list_num_colors[c]

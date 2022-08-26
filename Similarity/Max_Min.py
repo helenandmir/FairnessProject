@@ -4,11 +4,9 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 
-file1 ="../DataSet/Banks.csv"
-file2 ="../DataSet/Banks_group_100_2.csv"
 
-class MaxSum:
-    def __init__(self,req_dic,dic_center_and_colors):
+class MaxMin:
+    def __init__(self,req_dic,dic_center_and_colors,file1,file2):
         self.req_dic = req_dic
         self.df2 = pd.read_csv(file2)
         self.df1 = pd.read_csv(file1)
@@ -144,8 +142,9 @@ class MaxSum:
         list_centers =list(dic_center_and_colors.keys())
         for i in dic_center_and_colors.keys():
             list_sours_res.append(self.original_matrix[list_centers.index(i),list_colors.index(dic_center_and_colors[i])+1])
-        print("list similarity of source is {}".format(list_sours_res))
-        print("Min similarity in source is {}".format(min(list_sours_res)))
+        # print("list similarity of source is {}".format(list_sours_res))
+        # print("Min similarity in source is {}".format(min(list_sours_res)))
+        return list_sours_res
     def get_result2(self, dic_result):
         min_r = 2
         result_list = [self.Matrix2[i, dic_result[i]] for i in dic_result.keys()]
@@ -156,11 +155,11 @@ class MaxSum:
         for i in dic_result.keys():
             if self.Matrix2[i, dic_result[i]] < min_r:
                 min_r = self.Matrix2[i, dic_result[i]]
-        print("->>>>>>***<<<<<<-")
-        print("MaxMin is {}".format(min_r))
-        print("list similarity  is {}".format(result_list))
-        print("balls and colors match :{}".format(dic_center_color))
-        return min_r
+        # print("->>>>>>***<<<<<<-")
+        # print("MaxMin is {}".format(min_r))
+        # print("list similarity  is {}".format(result_list))
+        # print("balls and colors match :{}".format(dic_center_color))
+        return result_list
 
 def main() :
     #requairment
@@ -179,7 +178,7 @@ def main() :
 
     print("req_dic {}".format(req_dic))
     print(dic_center_and_colors)
-    H = MaxSum(req_dic,dic_center_and_colors)
+    H = MaxMin(req_dic, dic_center_and_colors)
     H.sort_indexs_matrix()
     H.main_algo()
     dic_result = H.get_result()
