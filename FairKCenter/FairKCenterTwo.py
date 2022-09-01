@@ -15,8 +15,8 @@ import math
 import CreateGraph
 import matplotlib.pyplot as plt
 import MaxMatching
-fileA = "../DataSet/Point.csv"
-fileB = "../DataSet/Point_radius_100.csv"
+fileA = "../DataSet/Listings.csv"
+fileB = "../DataSet/Listings_radius_1000.csv"
 
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
@@ -55,6 +55,8 @@ class FairKCenter:
             for j in range(1,len(non_zero_color)+1):
                 if self.df1.iat[i,j] >=m:
                     m=self.df1.iat[i,j]
+            if self.df2.iat[i,1] >m:
+                m = self.df1.iat[i, 1]
             self.dic_id_NR[i] = max(self.df2.iat[i,1], m)
             self.dic_id_loc[i] = [self.df.X[i], self.df.Y[i], self.df.Z[i]]
 
@@ -107,7 +109,7 @@ class FairKCenter:
             n = len(list_t)
             dist_c, ind_c = tree_c.query([[self.df.X[p], self.df.Y[p],self.df.Z[p]]], n)
             if n == 1:
-                temp_dic_id_NR.pop(list_t[0])
+                print("@@@@@@")
                 break
             for dis,i in zip(dist_c[0],ind_c[0]):
                 if dis <= self.dic_id_NR[list_t[i]] +self.dic_id_NR[p]:
@@ -204,7 +206,9 @@ class FairKCenter:
         print("#################")
         max_key = max(self.dic_id_NR, key=lambda x: self.dic_id_NR[x])
         print("The point with maximum NR is {} is NR is {}".format(max_key, self.dic_id_NR[max_key]))
-
+        print("Its alpha is {}, Its radius is {}.".format(dic_alpha[max_key], self.dic_id_NR[max_key]))
+        print("Its distance from the nearest center {} is {}.".format(self.dic_close_center[max_key],
+                                                                      self.dic_dis_to_close_center[max_key]))
         print(self.dic_center_id_NR.keys())
         print('time to "results2" end is {}'.format(time.time() - start_time))
 
@@ -291,14 +295,17 @@ class FairKCenter:
 def main() :
     start_time = time.time()
 
-    k = 100
+    k = 1000
     k_temp =k
     col_list = ["Colors"]
     df1 = pd.read_csv(fileA, usecols=col_list)
+    color_list = list(pd.read_csv(fileB, nrows=0).columns.tolist())
+    color_list.remove("ID")
+    color_list.remove("NR_TYPE_ONE")
     type_list = list(df1.Colors)
     type_set = list(set(type_list))
     num_type = len(type_set)
-    color_list = list(set(df1.Colors))#list(matplotlib.colors.cnames.keys())[0:num_type]
+    #color_list = list(set(df1.Colors))#list(matplotlib.colors.cnames.keys())[0:num_type]
     req_dic = {}
     center_colors = {}
     dic_orig = {}
@@ -306,11 +313,11 @@ def main() :
 
     for c in color_list:
         req_dic[c]= np.ceil((list(df1.Colors).count(c)/len(df1.Colors))*k)
-        if req_dic[c] < 3:
+        if req_dic[c] < 6:
             req_dic[c]=0
         dic_orig[c]=(list(df1.Colors).count(c)/len(df1.Colors))*k
         center_colors[c]=0
-    req_dic['black']=4
+    req_dic['blue']=411
     # req_dic['azure']=0
     # req_dic['blueviolet']=15
     # #Creating random requirements dictionary

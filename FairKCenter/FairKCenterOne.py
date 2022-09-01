@@ -11,8 +11,8 @@ import random
 from matplotlib import pyplot as plt, colors
 from math import sin, cos, sqrt, atan2, radians
 
-fileA = "../DataSet/Point.csv"
-fileB = "../DataSet/Point_radius_100.csv"
+fileA = "../DataSet/Listings.csv"
+fileB = "../DataSet/Listings_radius_1000.csv"
 class FairKCenter:
     # global
 
@@ -211,7 +211,7 @@ class FairKCenter:
 def main():
     start_time = time.time()
 
-    fair = FairKCenter(100)
+    fair = FairKCenter(1000)
     fair.initialization_NR_dic()
     fair.fair_k_2(1.399)
     #fair.two_fair_k_center(1.399)  # 1.359

@@ -160,34 +160,3 @@ class MaxMin:
         # print("list similarity  is {}".format(result_list))
         # print("balls and colors match :{}".format(dic_center_color))
         return result_list
-
-def main() :
-    #requairment
-    df2 = pd.read_csv(file2)
-    df1 = pd.read_csv(file1)
-    color_list = pd.read_csv(file2, nrows=0).columns.tolist()
-    color_list.remove("ID")
-    req_dic = {}
-    dic_center_and_colors = {}
-    for i in color_list:
-        req_dic[i] = 0
-    for i in df2.ID:
-        dic_center_and_colors[i] = df1.Colors[i]
-        c = df1.Colors[i]
-        req_dic[c] = req_dic[c] + 1
-
-    print("req_dic {}".format(req_dic))
-    print(dic_center_and_colors)
-    H = MaxMin(req_dic, dic_center_and_colors)
-    H.sort_indexs_matrix()
-    H.main_algo()
-    dic_result = H.get_result()
-    print("->>>>>>***<<<<<<-")
-
-    H.get_min_source(dic_center_and_colors)
-
-    H.get_result2(dic_result)
-if __name__ == '__main__':
-    start_time = time.time()
-    main()
-    print('time to end is {}'.format(time.time() - start_time))

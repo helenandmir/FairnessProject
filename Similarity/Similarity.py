@@ -5,8 +5,8 @@ import numpy as np
 from statistics import mean
 import matplotlib.pyplot as plt
 
-file1 ="../DataSet/Banks.csv"
-file2 ="../DataSet/Banks_group_100_2.csv"
+file1 ="../DataSet/Point.csv"
+file2 ="../DataSet/Point_group_100_3.csv"
 
 def compute_similarity_before_change(df2,dic_center_and_colors):
     list_centers = list(df2.ID)

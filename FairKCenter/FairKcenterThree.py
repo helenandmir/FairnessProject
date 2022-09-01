@@ -16,7 +16,7 @@ import CreateGraph
 import matplotlib.pyplot as plt
 import MaxMatching
 fileA = "../DataSet/Listings.csv"
-fileB = "../DataSet/Listings_radius_100.csv"
+fileB = "../DataSet/Listings_radius_1000.csv"
 
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
@@ -106,8 +106,11 @@ class FairKCenter:
             tree_c = KDTree(np.array(list(tuple_color)))
             n = len(list_t)
             dist_c, ind_c = tree_c.query([[self.df.X[p], self.df.Y[p],self.df.Z[p]]], n)
-            for dis,i in zip(dist_c[0],ind_c[0]):
-                if dis <= self.dic_id_NR[list_t[i]] +self.dic_id_NR[p]:
+            if n == 1:
+                print("@@@@@@")
+                break
+            for dis, i in zip(dist_c[0], ind_c[0]):
+                if dis <= self.dic_id_NR[list_t[i]] + self.dic_id_NR[p]:
                     temp_dic_id_NR.pop(list_t[i])
 
 
@@ -201,7 +204,10 @@ class FairKCenter:
 
         print("#################")
         max_key = max(self.dic_id_NR, key=lambda x: self.dic_id_NR[x])
-        print("The point with maximum NR is {} is NR is {}".format(max_key, self.dic_id_NR[max_key] ))
+        print("The point with maximum NR is {} is NR is {}".format(max_key, self.dic_id_NR[max_key]))
+        print("Its alpha is {}, Its radius is {}.".format(dic_alpha[max_key], self.dic_id_NR[max_key]))
+        print("Its distance from the nearest center {} is {}.".format(self.dic_close_center[max_key],
+                                                                      self.dic_dis_to_close_center[max_key]))
 
         print(self.dic_center_id_NR.keys())
         print('time to "results2" end is {}'.format(time.time() - start_time))
@@ -289,7 +295,7 @@ class FairKCenter:
 def main() :
     start_time = time.time()
 
-    k = 100
+    k = 1000
     k_temp =k
     col_list = ["Colors"]
     df1 = pd.read_csv(fileA, usecols=col_list)
@@ -304,11 +310,11 @@ def main() :
 
     for c in color_list:
         req_dic[c]= np.ceil((list(df1.Colors).count(c)/len(df1.Colors))*k)
-        if req_dic[c] < 3:
+        if req_dic[c] < 6:
             req_dic[c]=0
         dic_orig[c]=(list(df1.Colors).count(c)/len(df1.Colors))*k
         center_colors[c]=0
-    req_dic["purple"] =5
+    req_dic["purple"] =30
     # #Creating random requirements dictionary
     # while len(color_list) > 0:
     #     c = random.choice(color_list)
