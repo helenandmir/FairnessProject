@@ -1,3 +1,4 @@
+import math
 import sys
 import time
 
@@ -11,8 +12,8 @@ import random
 from matplotlib import pyplot as plt, colors
 from math import sin, cos, sqrt, atan2, radians
 
-fileA = "../DataSet/Listings.csv"
-fileB = "../DataSet/Listings_radius_1000.csv"
+fileA = "../DataSet/Point.csv"
+fileB = "../DataSet/Point_radius_1000.csv"
 class FairKCenter:
     # global
 
@@ -83,6 +84,8 @@ class FairKCenter:
             ##########
             list_t = list(temp_dic_id_NR.keys())
             tuple_color = tuple(zip(list(self.df.X[list_t]), list(self.df.Y[list_t]),list(self.df.Z[list_t])))
+            if len(tuple_color) == 0:
+                break
             tree_c = KDTree(np.array(list(tuple_color)))
             n = len(list_t)
             dist_c, ind_c = tree_c.query([[self.df.X[p], self.df.Y[p],self.df.Z[p]]], n)
@@ -143,6 +146,67 @@ class FairKCenter:
             self.dic_dis_to_close_center[p] = dist[0][0]
             self.dic_close_center[p] = np.array(list(self.dic_center_loc.keys()))[ind[0][0]]
         print('time to "update_dis_from_center" end is {}'.format(time.time() - start_time))
+    def uniform_calculation(self):
+        num_center = len(self.dic_center_id_NR)
+        uni = len(set(self.df.Colors))/num_center
+        colors_list = list(set(self.df.Colors))
+        result_arr ={}
+        distribution_arr = {}
+        result=0
+        center_color_num = {}
+        color_num={}
+        for c in colors_list:
+            color_num[c] = len([i for i in self.df.ID if self.df.Colors[i]==c])
+            center_color_num[c] = len([i for i in self.dic_center_id_NR.keys() if self.df.Colors[i]==c])
+        for c in colors_list:
+            distribution_arr[c] = (center_color_num[c]/num_center)
+            #result_arr[c] = abs(uni-(center_color_num[c]/num_center))
+            result += abs(uni-(center_color_num[c]/num_center))
+        print("The number of points of each color in the data:{}".format(color_num))
+        print("The number of center of each color in the result:{}".format(center_color_num))
+        #print("result_arr list ={}".format(result_arr))
+        print("distribution_arr ={}".format(distribution_arr))
+        print("uniform={}".format(uni))
+        result = result/len(colors_list)
+        return result
+
+    def relative_calculation(self):
+        result_arr ={}
+        color_list = list(set(self.df.Colors))
+        result =0
+        dic_rel ={}
+        req_result={}
+        num_color = len(color_list)
+        for c in color_list:
+            num_c = len([i for i in self.df.ID if self.df.Colors[i]==c])
+            dic_rel[c] = num_c/len(self.df.ID)
+            req_result[c]=0
+        for i in self.dic_center_id_NR:
+            c = self.df.Colors[i]
+            req_result[c] += 1
+        for c in color_list:
+            result_arr[c]=abs(dic_rel[c] - (req_result[c]/len(self.dic_center_id_NR)))
+            result += abs(dic_rel[c] - (req_result[c]/len(self.dic_center_id_NR)))
+
+        result=result / num_color
+        print("result arr rel ={}".format(result_arr))
+        return result
+    def result_distance(self):
+        num_centers = len(self.dic_center_id_NR)
+        colors_list = list(set(self.df.Colors))
+        num_point = len(self.df.Colors)
+        relative_dic={}
+        result_dis_dic= {}
+        for c in colors_list:
+            #math.floor(num_centers/len(colors_list))
+            relative_dic[c] = math.floor((list(self.df.Colors).count(c) / num_point)*num_centers )
+            result_dis_dic[c] = len([i for i in self.dic_center_id_NR.keys() if self.df.Colors[i] ==c])
+        #calculat distance
+        dis = math.sqrt(sum(((relative_dic.get(d,0)/num_centers) - (result_dis_dic.get(d,0)/num_centers))**2 for d in set(relative_dic) | set(result_dis_dic)))
+        print("relative_dic: {}".format(relative_dic))
+        print("result_dis_dic: {}".format(result_dis_dic))
+        return dis
+
 
     def results2(self):
         self.update_dis_from_center()
@@ -166,8 +230,13 @@ class FairKCenter:
         max_key = max(self.dic_id_NR, key=lambda x: self.dic_id_NR[x])
         print("The point with maximum NR is {} is NR is {}".format(max_key, self.dic_id_NR[max_key]))
 
+        print("#################")
         print(self.dic_center_id_NR.keys())
+        dis = self.result_distance()
+        print("the distance between the result to relative set is {}".format(dis))
 
+        # rel = self.relative_calculation()
+        # print("rel = {}".format(rel))
         print('time to "results2" end is {}'.format(time.time() - start_time))
 
     def save_group(self):

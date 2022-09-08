@@ -15,9 +15,9 @@ import math
 import CreateGraph
 import matplotlib.pyplot as plt
 import MaxMatching
-fileA = "../DataSet/Listings.csv"
-fileB = "../DataSet/Listings_radius_1000.csv"
-
+fileA = "../DataSet/Point.csv"
+fileB = "../DataSet/Point_radius_1000.csv"
+k=1000
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
         self.req_dic = req_dic  # A Dictionary that holds the constraints, the desired number of representatives from each entry
@@ -105,6 +105,8 @@ class FairKCenter:
             ##########
             list_t = list(temp_dic_id_NR.keys())
             tuple_color = tuple(zip(list(self.df.X[list_t]), list(self.df.Y[list_t]),list(self.df.Z[list_t])))
+            if len(tuple_color) ==0:
+                break
             tree_c = KDTree(np.array(list(tuple_color)))
             n = len(list_t)
             dist_c, ind_c = tree_c.query([[self.df.X[p], self.df.Y[p],self.df.Z[p]]], n)
@@ -174,6 +176,49 @@ class FairKCenter:
             self.dic_close_center[p] = np.array(list(self.dic_center_loc.keys()))[ind[0]]
         print('time to "update_dis_from_center" end is {}'.format(time.time() - start_time))
 
+    def uniform_calculation(self):
+        num_center = len(self.dic_center_id_NR)
+        uni = len(set(self.df.Colors)) / num_center
+        uni2 = len(set(self.df.Colors)) / self.K
+        colors_list = list(set(self.df.Colors))
+        result_arr = {}
+        distribution_arr = {}
+        result = 0
+        center_color_num = {}
+        color_num = {}
+        for c in colors_list:
+            color_num[c] = len([i for i in self.df.ID if self.df.Colors[i] == c])
+            center_color_num[c] = len([i for i in self.dic_center_id_NR.keys() if self.df.Colors[i] == c])
+        for c in colors_list:
+            distribution_arr[c] = (center_color_num[c] / num_center)
+            # result_arr[c] = abs(uni-(center_color_num[c]/num_center))
+            result += abs(uni - (center_color_num[c] / num_center))
+        print("The number of points of each color in the data:{}".format(color_num))
+        print("The number of center of each color in the result:{}".format(center_color_num))
+        # print("result_arr list ={}".format(result_arr))
+        print("distribution_arr ={}".format(distribution_arr))
+        print("uniform={}".format(uni))
+        print("uniform_org={}".format(uni2))
+        result = result / len(colors_list)
+        return result
+    def result_distance(self):
+        num_centers = len(self.dic_center_id_NR)
+        colors_list = list(set(self.df.Colors))
+        num_point = len(self.df.Colors)
+        relative_dic={}
+        result_dis_dic= {}
+        for c in colors_list:
+            # result_dis_dic[c] = len([i for i in self.dic_center_id_NR.keys() if self.df.Colors[i] ==c])
+            # math.floor(num_centers/len(colors_list))
+            relative_dic[c] =math.floor((list(self.df.Colors).count(c) / num_point)*num_centers)
+            result_dis_dic[c] = len([i for i in self.dic_center_id_NR.keys() if self.df.Colors[i] ==c])
+        #calculat distance
+        dis = math.sqrt(sum(((relative_dic.get(d,0)/num_centers) - (result_dis_dic.get(d,0)/num_centers))**2 for d in set(relative_dic) | set(result_dis_dic)))
+        print("relative_dic: {}".format(relative_dic))
+        print("result_dis_dic: {}".format(result_dis_dic))
+        return dis
+
+
     def results2(self):
         self.update_dis_from_center()
         start_time=time.time()
@@ -209,7 +254,11 @@ class FairKCenter:
         print("Its alpha is {}, Its radius is {}.".format(dic_alpha[max_key], self.dic_id_NR[max_key]))
         print("Its distance from the nearest center {} is {}.".format(self.dic_close_center[max_key],
                                                                       self.dic_dis_to_close_center[max_key]))
+        print("#################")
         print(self.dic_center_id_NR.keys())
+        dis = self.result_distance()
+        print("the distance between the result to relative set is {}".format(dis))
+
         print('time to "results2" end is {}'.format(time.time() - start_time))
 
 
@@ -218,9 +267,9 @@ class FairKCenter:
         tuple_color = tuple(zip(list(self.df.X[self.df.ID]), list(self.df.Y[self.df.ID]), list(self.df.Z[self.df.ID])))
         tree_c = KDTree(np.array(list(tuple_color)))
         for c in self.dic_center_id_NR:
-            dist_c, ind_c = tree_c.query(list(self.dic_center_loc[c]),len(list(self.df.ID)), distance_upper_bound=self.dic_center_id_NR[c]+1)
+            dist_c, ind_c = tree_c.query(list(self.dic_center_loc[c]),len(list(self.df.ID)), distance_upper_bound=self.dic_center_id_NR[c])#distance_upper_bound=self.dic_center_id_NR[c]+1
             dis = [i for i in dist_c if i != math.inf]
-            ind = ind_c[0:len(dis)]
+            ind =[self.df.ID[i] for i in ind_c[0:len(dis)] ]
             self.dic_center_ball[c] = list(ind)
 
 
@@ -295,8 +344,7 @@ class FairKCenter:
 def main() :
     start_time = time.time()
 
-    k = 1000
-    k_temp =k
+
     col_list = ["Colors"]
     df1 = pd.read_csv(fileA, usecols=col_list)
     color_list = list(pd.read_csv(fileB, nrows=0).columns.tolist())
@@ -307,19 +355,12 @@ def main() :
     num_type = len(type_set)
     #color_list = list(set(df1.Colors))#list(matplotlib.colors.cnames.keys())[0:num_type]
     req_dic = {}
-    center_colors = {}
     dic_orig = {}
     #Creating relative requirements dictionary
 
     for c in color_list:
-        req_dic[c]= np.ceil((list(df1.Colors).count(c)/len(df1.Colors))*k)
-        if req_dic[c] < 6:
-            req_dic[c]=0
-        dic_orig[c]=(list(df1.Colors).count(c)/len(df1.Colors))*k
-        center_colors[c]=0
-    req_dic['blue']=411
-    # req_dic['azure']=0
-    # req_dic['blueviolet']=15
+        req_dic[c]= math.floor((list(df1.Colors).count(c)/len(df1.Colors))*k)
+
     # #Creating random requirements dictionary
     # while len(color_list) > 0:
     #     c = random.choice(color_list)
@@ -329,8 +370,14 @@ def main() :
     #     k_temp -= num_random
     #     center_colors[c] = 0
     #     color_list.remove(c)
+    #
 
-
+    # # Creating uniform requirements dictionary
+    #
+    # uni = math.floor(k / len(color_list))
+    # print(uni)
+    # for c in color_list:
+    #     req_dic[c] = uni
 
     print(sum(req_dic.values()))
     print("requirement dictionary:")
