@@ -12,8 +12,8 @@ import random
 from matplotlib import pyplot as plt, colors
 from math import sin, cos, sqrt, atan2, radians
 
-fileA = "../DataSet/Point.csv"
-fileB = "../DataSet/Point_radius_1000.csv"
+fileA = "../DataSet/Listings.csv"
+fileB = "../DataSet/Listings_radius_100.csv"
 class FairKCenter:
     # global
 
@@ -90,7 +90,7 @@ class FairKCenter:
             n = len(list_t)
             dist_c, ind_c = tree_c.query([[self.df.X[p], self.df.Y[p],self.df.Z[p]]], n)
             for dis,i in zip(dist_c[0],ind_c[0]):
-                if dis <= self.dic_id_NR[list_t[i]] +self.dic_id_NR[p]:
+                if dis <= alpha*self.dic_id_NR[list_t[i]] :#+self.dic_id_NR[p]
                     temp_dic_id_NR.pop(list_t[i])
 
 
@@ -198,8 +198,8 @@ class FairKCenter:
         relative_dic={}
         result_dis_dic= {}
         for c in colors_list:
-            #math.floor(num_centers/len(colors_list))
-            relative_dic[c] = math.floor((list(self.df.Colors).count(c) / num_point)*num_centers )
+            #math.floor((list(self.df.Colors).count(c) / num_point)*num_centers )
+            relative_dic[c] =math.floor(num_centers/len(colors_list))
             result_dis_dic[c] = len([i for i in self.dic_center_id_NR.keys() if self.df.Colors[i] ==c])
         #calculat distance
         dis = math.sqrt(sum(((relative_dic.get(d,0)/num_centers) - (result_dis_dic.get(d,0)/num_centers))**2 for d in set(relative_dic) | set(result_dis_dic)))
@@ -278,35 +278,37 @@ class FairKCenter:
 
 
 def main():
+    # start_time = time.time()
+    #
+    # fair = FairKCenter(1000)
+    # fair.initialization_NR_dic()
+    # fair.fair_k_2(1.399)
+    # #fair.two_fair_k_center(1.399)  # 1.359
+    # # fair.save_group()
+    # fair.results2()
+    # print('time to end is {}'.format(time.time() - start_time))
+    #
+    # fair.plot_point()
     start_time = time.time()
+    low =1
+    high=2
+    while low <= high:
+        mid = (low+high)/2
+        print("alpha(mid) ={}".format(mid))
+        fair = FairKCenter(100)
+        fair.initialization_NR_dic()
+        if fair.fair_k_2(mid) < fair.K:
+            high = mid
+        elif fair.fair_k_2(mid) == fair.K:
+            fair.results2()
+            print('time to end is {}'.format(time.time() - start_time))
 
-    fair = FairKCenter(1000)
-    fair.initialization_NR_dic()
-    fair.fair_k_2(1.399)
-    #fair.two_fair_k_center(1.399)  # 1.359
-    # fair.save_group()
-    fair.results2()
-    print('time to end is {}'.format(time.time() - start_time))
-
-    fair.plot_point()
-
-    # low =1
-    # high=2
-    # while low <= high:
-    #     mid = (low+high)/2
-    #     print("alpha(mid) ={}".format(mid))
-    #     fair = FairKCenter(100)
-    #     fair.initialization_NR_dic(list(fair.df.ID))
-    #     if fair.two_fair_k_center(mid) < fair.K:
-    #         high = mid
-    #     elif fair.two_fair_k_center(mid) == fair.K:
-    #         fair.results2()
-    #         print(fair.dic_center_id_NR.keys())
-    #         print(len(fair.dic_center_id_NR.keys()))
-    #         fair.plot_point()
-    #         break
-    #     else:
-    #         low =mid
+            # print(fair.dic_center_id_NR.keys())
+            # print(len(fair.dic_center_id_NR.keys()))
+            fair.plot_point()
+            break
+        else:
+            low =mid
 
 
 if __name__ == '__main__':

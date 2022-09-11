@@ -16,8 +16,8 @@ import CreateGraph
 import matplotlib.pyplot as plt
 import MaxMatching
 fileA = "../DataSet/Listings.csv"
-fileB = "../DataSet/Listings_radius_100.csv"
-k=100
+fileB = "../DataSet/Listings_radius_750.csv"
+k=750
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
         self.req_dic = req_dic  # A Dictionary that holds the constraints, the desired number of representatives from each entry
@@ -335,13 +335,19 @@ class FairKCenter:
         temp_dic_id_NR = self.dic_center_id_NR.copy()
         while len(self.dic_center_id_NR)!=new_k:
             center = max(temp_dic_id_NR, key=temp_dic_id_NR.get)
-            all_point=dict([(i,distance.euclidean(self.dic_id_loc[i], self.dic_center_loc[center]) )for i in self.dic_group[center] if self.update_req_dic[self.df.Colors[i]]!=0 and i not in self.dic_center_id_NR.keys()])
-            new_center = max(all_point, key=all_point.get)
-            self.dic_center_id_NR[new_center]=self.dic_id_NR[new_center]
-            self.dic_center_loc[new_center]=self.dic_id_loc[new_center]
-            color = self.df.Colors[new_center]
-            self.update_req_dic[color] -=1
-            temp_dic_id_NR.pop(center)
+            #print("center ={} group ={}".format(center,self.dic_group[center]))
+            all_point=dict([(i,distance.euclidean(self.dic_id_loc[i], self.dic_center_loc[center]) )for i in self.dic_group[center] if self.update_req_dic[self.df.Colors[i]]>0 and i not in self.dic_center_id_NR.keys()])
+            if len(all_point) ==0:
+                temp_dic_id_NR.pop(center)
+
+            else:
+                new_center = max(all_point, key=all_point.get)
+                self.dic_center_id_NR[new_center]=self.dic_id_NR[new_center]
+                self.dic_center_loc[new_center]=self.dic_id_loc[new_center]
+                #temp_dic_id_NR[new_center] =self.dic_id_NR[new_center]
+                color = self.df.Colors[new_center]
+                self.update_req_dic[color] -=1
+                temp_dic_id_NR.pop(center)
         print("end")
 
 
@@ -365,6 +371,12 @@ def main() :
 
     for c in color_list:
         req_dic[c] = math.floor((list(df1.Colors).count(c) / len(df1.Colors)) * k)
+    if sum(req_dic.values()) < k:
+        while(sum(req_dic.values()) != k):
+            c = random.choice(color_list)
+            req_dic[c] +=1
+
+
 
     # #Creating random requirements dictionary
     # while len(color_list) > 0:
