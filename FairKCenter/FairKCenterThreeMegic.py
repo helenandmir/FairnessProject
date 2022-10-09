@@ -15,9 +15,9 @@ import math
 import CreateGraph
 import matplotlib.pyplot as plt
 import MaxMatching
-fileA = "../DataSet/Listings.csv"
-fileB = "../DataSet/Listings_radius_750.csv"
-k=750
+fileA = "../DataSet/Point.csv"
+fileB = "../DataSet/Point_radius_1000.csv"
+k=1000
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
         self.req_dic = req_dic  # A Dictionary that holds the constraints, the desired number of representatives from each entry
@@ -29,6 +29,7 @@ class FairKCenter:
         self.dic_id_NR = {}  # A dictionary that holds the neighborhood radius for each point
         self.dic_close_center ={}
         self.dic_dis_to_close_center ={}
+        self.dic_add_center ={}
 
         self.dic_center_ball ={}  # A dictionary that holds the ball of each center point
         self.ball ={}
@@ -99,7 +100,7 @@ class FairKCenter:
         self.dic_id_NR = dict(sorted(self.dic_id_NR.items(), key=lambda item: item[1]))
         temp_dic_id_NR = self.dic_id_NR.copy()
 
-        while len(self.dic_center_id_NR.keys()) != self.K and len(temp_dic_id_NR.keys())!=0:
+        while len(temp_dic_id_NR.keys())!=0:
             #print(len(self.dic_center_id_NR.keys()))
             p = min(temp_dic_id_NR, key=temp_dic_id_NR.get)
             self.dic_center_id_NR[p] = self.dic_id_NR[p]
@@ -120,7 +121,7 @@ class FairKCenter:
                 print("@@@@@@")
                 break
             for dis, i in zip(dist_c[0], ind_c[0]):
-                if dis <= self.dic_id_NR[list_t[i]] + self.dic_id_NR[p]:
+                if dis <= alpha*self.dic_id_NR[list_t[i]] + self.dic_id_NR[p]: # alpha*
                     temp_dic_id_NR.pop(list_t[i])
 
 
@@ -182,6 +183,16 @@ class FairKCenter:
             self.dic_close_center[p] = np.array(list(self.dic_center_loc.keys()))[ind[0]]
         print('time to "update_dis_from_center" end is {}'.format(time.time() - start_time))
 
+    def update_dis_from_center2(self, new_center):
+
+        # arr_coordinates = np.array(self.dic_id_loc)
+        all_point=list(self.dic_id_loc.keys())
+        tree = KDTree(np.array(list(self.dic_id_loc.values())))
+        dist, ind = tree.query([[self.df.X[new_center], self.df.Y[new_center], self.df.Z[new_center]]], len(self.dic_id_loc))
+        temp=self.dic_dis_to_close_center.copy()
+        self.dic_dis_to_close_center = dict([(all_point[i],max(j,temp[all_point[i]])) for i,j in dict(zip(ind[0], dist[0])).items()])
+
+
 
     def uniform_calculation(self):
         num_center = len(self.dic_center_id_NR)
@@ -226,26 +237,15 @@ class FairKCenter:
     def results2(self):
         self.update_dis_from_center()
         start_time=time.time()
-        # ##########
-        # dic_alpha={}
-        # for k,v in self.dic_id_NR.items():
-        #     if self.dic_dis_to_close_center[k] == 0 and  self.dic_id_NR[k]==0:
-        #         print("if")
-        #         dic_alpha[k] = 1
-        #     elif self.dic_id_NR[k] == 0:
-        #         print("######################elif###########3")
-        #         dic_alpha[k] = math.inf
-        #     else:
-        #         dic_alpha[k]=self.dic_dis_to_close_center[k]/ self.dic_id_NR[k]
-        #
-        # ##########
+        print("#######{max alpha}##########")
+
         dic_alpha = dict([(k,self.dic_dis_to_close_center[k]/ self.dic_id_NR[k]) for k, v in self.dic_id_NR.items()])
         max_key = max(dic_alpha, key=lambda x: dic_alpha[x])
         print("The point with maximum alpha is:{}".format(max_key))
         print("Its alpha is {}, Its radius is {}.".format(dic_alpha[max_key],self.dic_id_NR[max_key]))
         print("Its distance from the nearest center {} is {}.".format(self.dic_close_center[max_key],self.dic_dis_to_close_center[max_key]))
         print("number of center is {}".format(len(self.dic_center_id_NR)))
-        print("#################")
+        print("#######{max dis to center}##########")
         max_dis = max(self.dic_dis_to_close_center, key=self.dic_dis_to_close_center.get)
         print("The point with maximum distance from his nearest center is:{} in {}".format(max_dis, (
             self.df.Longitude[max_dis], self.df.Latitude[max_dis])))
@@ -253,17 +253,24 @@ class FairKCenter:
         print("Its distance from the nearest center {} is {}.".format(self.dic_close_center[max_dis],
                                                                       self.dic_dis_to_close_center[max_dis]))
 
-        print("#################")
+        print("#######{max NR}##########")
         max_key = max(self.dic_id_NR, key=lambda x: self.dic_id_NR[x])
         print("The point with maximum NR is {} is NR is {}".format(max_key, self.dic_id_NR[max_key]))
         print("Its alpha is {}, Its radius is {}.".format(dic_alpha[max_key], self.dic_id_NR[max_key]))
         print("Its distance from the nearest center {} is {}.".format(self.dic_close_center[max_key],
                                                                       self.dic_dis_to_close_center[max_key]))
 
-        print("#################")
+        print("#######{max alpha 1}##########")
         print(self.dic_center_id_NR.keys())
-        dis = self.result_distance()
-        print("the distance between the result to relative set is {}".format(dis))
+        dic_alpha2 = dict([(k,self.dic_dis_to_close_center[k]/ self.df2.NR_TYPE_ONE[k]) for k, v in self.dic_id_NR.items()])
+        max_key2 = max(dic_alpha2, key=lambda x: dic_alpha2[x])
+        print("The point with maximum alpha1 is:{}".format(max_key2))
+        print("Its alpha is {}, Its radius1 is {}.".format(dic_alpha2[max_key2], self.df2.NR_TYPE_ONE[max_key2]))
+        print("Its distance from the nearest center {} is {}.".format(self.dic_close_center[max_key2],
+                                                                      self.dic_dis_to_close_center[max_key2]))
+
+        #dis = self.result_distance()
+        #print("the distance between the result to relative set is {}".format(dis))
 
         print('time to "results2" end is {}'.format(time.time() - start_time))
 
@@ -280,10 +287,20 @@ class FairKCenter:
 
 
     def plot_point(self):
-        x_c =list(self.df.Longitude[self.dic_center_id_NR.keys()])
-        y_c = list(self.df.Latitude[self.dic_center_id_NR.keys()])
-        c_c = list(self.df.Colors[self.dic_center_id_NR.keys()])
+        ######
+        new_dic_center = dict([(k,v) for k, v in self.dic_center_id_NR.items() if k not in self.dic_add_center.keys() ])
+        ######
+        x_c =list(self.df.Longitude[new_dic_center.keys()])#self.dic_center_id_NR.keys()
+        y_c = list(self.df.Latitude[new_dic_center.keys()])
+        c_c = list(self.df.Colors[new_dic_center.keys()])
         size_c = [100]*len(x_c)
+
+        ################
+        x_c_add = list(self.df.Longitude[self.dic_add_center.keys()])
+        y_c_add = list(self.df.Latitude[self.dic_add_center.keys()])
+        c_add = list(self.df.Colors[self.dic_add_center.keys()])
+        size_c_add = [40] * len(x_c_add)
+        ##############
         x = list(self.df.Longitude)
         y = list(self.df.Latitude)
         c = list(self.df.Colors)
@@ -291,66 +308,139 @@ class FairKCenter:
 
         plt.scatter(x, y, c=c, marker='.',s=s_p,cmap='viridis', edgecolors='gray')
         plt.scatter(x_c, y_c, c=c_c, marker='*',s= size_c,edgecolors='black')
+        plt.scatter(x_c_add, y_c_add, c=c_add, marker='P', s=size_c_add, edgecolors='black')
 
         plt.show()
     def replace_center(self,new_center):
         temp_dic = self.dic_center_id_NR.copy()
-
+        self.dic_center_id_NR={}
+        self.dic_center_loc={}
+        #self.dic_center_ball={}
         for i in temp_dic:
+            if i not in new_center.keys():
+                print("debug")
             if i in new_center.keys():
                 #print("before = {}".format(len(self.dic_center_id_NR)))
                 #print(" i ={} new_center[i] ={} ".format(i,new_center[i]))
-                self.dic_center_id_NR.pop(i)
+                #print("i={}".format(i))
+                #self.dic_center_id_NR.pop(i)#
                 self.dic_center_id_NR[new_center[i]] = self.dic_id_NR[new_center[i]]
-                self.dic_center_loc.pop(i)
+                #self.dic_center_loc.pop(i)#
                 self.dic_center_loc[new_center[i]] = self.dic_id_loc[new_center[i]]
 
                 self.dic_center_ball[new_center[i]] = self.dic_center_ball[i]
-                self.dic_center_ball.pop(i)
+                #self.dic_center_ball.pop(i)#
                 #print("after = {}".format(len(self.dic_id_NR)))
-            else:
-                self.dic_center_id_NR.pop(i)
-                self.dic_center_loc.pop(i)
-                self.dic_center_ball.pop(i)
+            # else:
+            #     self.dic_center_id_NR.pop(i)
+            #     self.dic_center_loc.pop(i)
+            #     self.dic_center_ball.pop(i)
 
     def update_requirments(self):
-        print("before")
+        start_time=time.time()
+
         for i in self.update_req_dic :
-            self.update_req_dic[i] = self.update_req_dic[i]  -len([j for j in self.dic_center_id_NR.keys() if self.df.Colors[j]==i])
-        print("end")
+            self.update_req_dic[i] = self.update_req_dic[i] -len([j for j in self.dic_center_id_NR.keys() if self.df.Colors[j]==i])
+        print('time to update_requirments end is {}'.format(time.time() - start_time))
+
     def initialization_grups(self):
+
         # create ball
         list_t = list(self.dic_center_id_NR.keys())
         tuple_color = tuple(zip(list(self.df.X[list_t]), list(self.df.Y[list_t]), list(self.df.Z[list_t])))
         tree_c = KDTree(np.array(list(tuple_color)))
         for i in self.dic_center_id_NR.keys():
-            self.dic_group[i] =[]
+            self.dic_group[i] = []
 
         for i in self.df.ID:
             dist_c, ind_c = tree_c.query([[self.df.X[i], self.df.Y[i], self.df.Z[i]]], 1)
             self.dic_group[list_t[ind_c[0]]].append(i)
-            #self.dic_group_dis[list_t[ind_c[0]]].append(list_t[dist_c[0]])
-    def add_center(self):
+            self.dic_close_center[i] = list_t[ind_c[0]]
+            self.dic_dis_to_close_center[i] = dist_c[0]
+            # self.dic_group_dis[list_t[ind_c[0]]].append(list_t[dist_c[0]])
+
+    def update_groups(self, center):
+        self.dic_group[center] = []
+        list_t = list(self.df.ID)
+        tuple_color = tuple(zip(list(self.df.X[list_t]), list(self.df.Y[list_t]), list(self.df.Z[list_t])))
+        tree_c = KDTree(np.array(list(tuple_color)))
+        dist_c, ind_c = tree_c.query([[self.df.X[center], self.df.Y[center], self.df.Z[center]]], 1)
+        for i, d in zip(ind_c, dist_c):
+            if self.dic_dis_to_close_center[list_t[i]] > d:
+                close_c = self.dic_close_center[list_t[i]]
+                self.dic_group[close_c].remove(list_t[i])
+                self.dic_close_center[list_t[i]] = center
+                self.dic_dis_to_close_center[list_t[i]] = d
+                self.dic_group[center].append(list_t[i])
+
+    def add_center2(self):
+        start_time = time.time()
         new_k=sum(self.req_dic.values())
+        all_point= [x for x in self.df.ID if (x not in self.dic_center_id_NR.keys())]
+        while len(self.dic_center_id_NR)!=new_k:
+          print(len(self.dic_center_id_NR))
+          color = [i for i in self.update_req_dic.keys() if self.update_req_dic[i]>0][0]
+          points_color = [i for i in all_point if self.df.Colors[i] == color]
+          dict_point_dis = dict([(i, self.dic_dis_to_close_center[i])  for i in points_color])
+
+          new_center = max(dict_point_dis, key=dict_point_dis.get)
+
+          self.dic_center_id_NR[new_center] =self.dic_id_NR[new_center]
+          self.dic_add_center[new_center] = self.dic_id_loc[new_center]
+          self.dic_center_loc[new_center] = self.dic_id_loc[new_center]
+          self.update_req_dic[color] -=1
+          all_point.remove(new_center)
+          self.update_groups(new_center)
+
+    def add_center(self):
+        start_time=time.time()
+
+        new_k=sum(self.req_dic.values())
+        print("new_k ={}".format(new_k))
         temp_dic_id_NR = self.dic_center_id_NR.copy()
         while len(self.dic_center_id_NR)!=new_k:
+            print(len(self.dic_center_id_NR))
+            if len(temp_dic_id_NR) ==0:
+                self.dic_group ={}
+                self.initialization_grups()
+                temp_dic_id_NR=self.dic_center_id_NR.copy()
             center = max(temp_dic_id_NR, key=temp_dic_id_NR.get)
             #print("center ={} group ={}".format(center,self.dic_group[center]))
             all_point=dict([(i,distance.euclidean(self.dic_id_loc[i], self.dic_center_loc[center]) )for i in self.dic_group[center] if self.update_req_dic[self.df.Colors[i]]>0 and i not in self.dic_center_id_NR.keys()])
             if len(all_point) ==0:
                 temp_dic_id_NR.pop(center)
-
             else:
                 new_center = max(all_point, key=all_point.get)
+                self.dic_add_center[new_center]=self.dic_id_loc[new_center]
                 self.dic_center_id_NR[new_center]=self.dic_id_NR[new_center]
                 self.dic_center_loc[new_center]=self.dic_id_loc[new_center]
                 #temp_dic_id_NR[new_center] =self.dic_id_NR[new_center]
                 color = self.df.Colors[new_center]
                 self.update_req_dic[color] -=1
                 temp_dic_id_NR.pop(center)
-        print("end")
+        print('time to add_center end is {}'.format(time.time() - start_time))
 
 
+def binary_search(req_dic,color_list,parm):
+    low =1
+    high=2
+    while low <= high:
+        mid = (low+high)/2
+        print("alpha(mid) ={}".format(mid))
+        fair = FairKCenter(req_dic,color_list,k)
+        fair.initialization_NR_dic(list(fair.df.ID),parm)
+        res=fair.fair_k_2(mid)
+
+
+        if res < sum(req_dic.values()):
+            high = mid
+        elif res == sum(req_dic.values()):
+            break
+
+
+        else:
+            low =mid
+    return mid
 
 def main() :
     start_time = time.time()
@@ -366,36 +456,43 @@ def main() :
     center_colors = {}
     dic_orig = {}
 
-
-    # Creating relative requirements dictionary
-
     for c in color_list:
-        req_dic[c] = math.floor((list(df1.Colors).count(c) / len(df1.Colors)) * k)
-    if sum(req_dic.values()) < k:
-        while(sum(req_dic.values()) != k):
-            c = random.choice(color_list)
-            req_dic[c] +=1
+        dic_orig[c] = list(df1.Colors).count(c)
 
+    # # Creating relative requirements dictionary
+    #
+    # for c in color_list:
+    #     req_dic[c] = math.floor((list(df1.Colors).count(c) / len(df1.Colors)) * k)
+    # print(req_dic)
+    print(dic_orig)
 
 
     # #Creating random requirements dictionary
-    # while len(color_list) > 0:
-    #     c = random.choice(color_list)
-    #     range_num = min(list(df1.Colors).count(c), k_temp)
-    #     num_random = random.randint(0, range_num)
-    #     req_dic[c] = num_random
-    #     k_temp -= num_random
-    #     center_colors[c] = 0
-    #     color_list.remove(c)
+    dic_c = {}
+    dic_orig2 = dict([(i,dic_orig[i]) for i in dic_orig.keys() if dic_orig[i] > k])
+
+    for i in range(1,15):
+        i = random.choice(range(0,len(dic_orig2.keys())))
+        c = list(dic_orig2.keys())[i]
+        dic_c[c] = dic_orig2[c]
+    for c in color_list:
+        if c not in dic_c.keys():
+            req_dic[c] = 0
+        else:
+            req_dic[c] = math.floor((dic_c[c]/sum(dic_c.values()))*k)
 
     # #Creating uniform requirements dictionary
+    # M = len([i for i in dic_orig.keys() if dic_orig[i]>31])
+    # uni=math.floor(k/M)
     #
-    # uni=math.floor(k/len(color_list))
     # print(uni)
     # for c in color_list:
-    #     req_dic[c] = uni
-
-
+    #     if dic_orig[c]>31:
+    #        req_dic[c] = uni
+    #     else:
+    #         req_dic[c] = 0
+    list_print = [i for i in req_dic.keys() if req_dic[i]>0]
+    print(list_print)
     print(sum(req_dic.values()))
     print("requirement dictionary:")
     print(req_dic)
@@ -403,9 +500,17 @@ def main() :
     for i in range(1,len(color_list)):
         print("->>i={}<<-".format(i))
         fair = FairKCenter(req_dic,color_list,k)
+        # alpha=binary_search(req_dic,color_list,i)
+        # print("alpha={}".format(alpha))
+        # if alpha ==-1:
+        #     print("alpha=-1")
+        #     continue
         fair.initialization_NR_dic(list(fair.df.ID),i)
-        fair.fair_k_2(0.01)
+        fair.fair_k_2(1.34765625)
+
         fair.initialization_ball_center2()
+
+
         C = MaxMatching.CR(fair.req_dic, fileA, fair.dic_center_ball)
         C.add_nodes1()
         C.add_nodes2()
@@ -418,10 +523,11 @@ def main() :
 
         print("len center after replace ={}".format(len(fair.dic_center_id_NR)))
         if len(fair.dic_center_id_NR)==num:
+            #fair.plot_point()
             print([fair.df.Colors[id] for id in fair.dic_center_id_NR.keys()])
             fair.update_requirments()
             fair.initialization_grups()
-            fair.add_center()
+            fair.add_center2()
             fair.results2()
             print('time to end is {}'.format(time.time() - start_time))
             fair.plot_point()

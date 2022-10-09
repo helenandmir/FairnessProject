@@ -37,7 +37,7 @@ class MaxSum:
         list_color = [self.list_colors[x] for x in col_ind]
         list_id = [self.df2.ID[x] for x in row_ind]
         dic_plot = dict(zip(list_id,list_color))
-        #print("indexes of centers = {}".format(dic_plot))
+        print("indexes of centers = {}".format(dic_plot))
         #print("Hungarian_results = {}".format(self.Matrix_org[row_ind, col_ind].sum()))
         list_res =[i for i in self.Matrix_org[row_ind, col_ind]]
         self.result_Hungarian = list(list_res)

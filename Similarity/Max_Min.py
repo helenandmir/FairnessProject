@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-
+import PerfectMatchingRowAndCol
 
 class MaxMin:
     def __init__(self,req_dic,dic_center_and_colors,file1,file2):
@@ -42,13 +42,12 @@ class MaxMin:
 
     def main_algo(self):
         self.updste_row_zero()
+
+        self.updste_col_zero()
         while (self.end_check() == False):
             self.Matrix = self.Matrix.reshape(-1)
             min_val = min(self.Matrix[np.nonzero(self.Matrix)])
             self.Matrix = np.array([i - min_val if i > 0 else i for i in self.Matrix])
-            self.updste_row_zero()
-            self.updste_col_zero()
-
 
     def updste_col_zero(self):
         self.Matrix = self.Matrix.reshape(self.num_row, self.num_col)
@@ -57,16 +56,34 @@ class MaxMin:
               self.col_zero[i] = np.count_nonzero(self.Matrix[:,i] == 0)
 
     def updste_row_zero(self):
+
         self.Matrix = self.Matrix.reshape(self.num_row, self.num_col)
         for i in range(self.num_row):
            if np.count_nonzero(self.Matrix[i, :] == 0) != 0 :
               self.row_zero[i] = np.count_nonzero(self.Matrix[i, :] == 0)
 
+    def updste_row_zero2(self,col):
+        for r in self.row_zero.keys():
+            if self.Matrix[r,col] == 0:
+                self.row_zero[r] -=1
+
+    def updste_col_zero2(self,row):
+        for c in self.col_zero.keys():
+            if self.Matrix[row,c] == 0:
+                self.col_zero[c] -=1
+
+
+
 
     def end_check(self):
+        if len(self.row_zero) != len(self.Matrix) or len(self.col_zero)!= len(self.Matrix):
+           self.updste_row_zero()
+           self.updste_col_zero()
+
+        self.Matrix = self.Matrix.reshape(self.num_row, self.num_col)
         # check if there is "zero's cover"
         if len(self.row_zero) == len(self.Matrix) and len(self.col_zero) == len(self.Matrix):
-            if (self.coverage_test()==True):
+            if (self.coverage_test_p()==True):
                 return True
         return False
 
@@ -74,6 +91,7 @@ class MaxMin:
         max_r = -1
         max_ind = -1
         for i in range(0,len(arr[:,0])):
+
             num_z = len([j for j in arr[i,:] if j == 0])
             if num_z > max_r:
                 max_r = num_z
@@ -100,22 +118,45 @@ class MaxMin:
         matrix_copy = self.Matrix.copy()
         count =0
         while(len(matrix_copy)!=0):
-              count+=1
+
               max_r,num_max_r = self.get_max_row(matrix_copy)
               max_c,num_max_c = self.get_max_col(matrix_copy)
-              if max_r ==-1 and max_c==-1:
-                  return False
 
-              if num_max_r > num_max_c:
+              if max_r ==-1 and max_c==-1 :
+                  if count==self.num_col:
+                      return self.coverage_test_p()
+                  else: return False
+
+              if num_max_r >= num_max_c:
                   matrix_copy = np.delete(matrix_copy, max_r, 0)
+                  count += 1
               else:
-                  if len(matrix_copy[0,:]) ==1:
-                      matrix_copy =[]
-                  else:
-                      matrix_copy = np.delete(matrix_copy, max_c, 1)
+                    matrix_copy = np.delete(matrix_copy, max_c, 1)
+                    count += 1
+              print(count)
+        print("end")
         if count == self.num_col:
-            return True
+            return self.coverage_test_p()
         return False
+
+    def coverage_test_p(self):
+        M = PerfectMatchingRowAndCol.CR(self.Matrix)
+        M.add_nodes_col()
+        M.add_nodes_row()
+        M.add_edegs()
+        dic_match = M.create_graph()
+        if len(dic_match) == len(self.Matrix):
+            return True
+        else:
+            return False
+    def get_result_perfect(self):
+        M = PerfectMatchingRowAndCol.CR(self.Matrix)
+        M.add_nodes_col()
+        M.add_nodes_row()
+        M.add_edegs()
+        dic_match = M.get_res()
+        dict_try=dict([(int(k[:-1]),int(v[:-1])) for k,v in dic_match.items()])
+        return dict_try
 
     def get_result(self):
         dic_result = {}
@@ -131,9 +172,15 @@ class MaxMin:
                 if self.col_zero[i] < min_col:
                     min_col = self.col_zero[i]
                     c = i
+            if c ==-1:
+                print("debug")
             dic_result[min_row] = c
+            self.Matrix[min_row, c] =-1
             list_col.append(c)
             self.row_zero.pop(min_row)
+            self.updste_col_zero2(min_row)
+            self.updste_row_zero2(c)
+
         #print(dic_result)
         return dic_result
     def get_min_source(self,dic_center_and_colors):
@@ -159,4 +206,5 @@ class MaxMin:
         # print("MaxMin is {}".format(min_r))
         # print("list similarity  is {}".format(result_list))
         # print("balls and colors match :{}".format(dic_center_color))
+        print("result={}".format(dic_center_color))
         return result_list

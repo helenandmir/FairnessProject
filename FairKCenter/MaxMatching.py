@@ -31,7 +31,7 @@ class CR:
     def add_edegs(self):
         for i in self.list_nodes2:
             for c in self.dic_colors_in_ball[i]:
-                nodes = [n for n in self.list_nodes1 if c in n]
+                nodes = [n for n in self.list_nodes1 if c == "".join([i for i in n if not i.isdigit()])]
                 self.list_edges.extend((i,b) for b in nodes)
 
     def colors_in_balls(self):
@@ -42,15 +42,22 @@ class CR:
         for pair in match:
             if type(pair[1]) == str:
                 pair = (pair[1], pair[0])
-            res =[i for i in self.dic_ball_centers[pair[1]] if self.df.Colors[i] in pair[0]]
+            res =[i for i in self.dic_ball_centers[pair[1]] if self.df.Colors[i] == ''.join([i for i in pair[0] if not i.isdigit()])]
             self.dic_new_center[pair[1]] = res[0]
 
     def create_graph(self):
         G = networkx.Graph()
         G.add_edges_from(self.list_edges)
-        P= networkx.maximal_matching(G)
+        P=networkx.max_weight_matching(G)
         #p = maximal_independent_set(G, seed=0)
         print(P)
+        print("max_match ={}".format(len(P)))
+        # colors_dic={}
+        # for c in self.dic_colors:
+        #     colors_dic[c] = len([i for i in P if c in str(i[0])])
+        # print("colors_dic ={}".format(colors_dic))
+
+
         self.ret_center(P)
         # for i in range(0, 10):
         #     p=maximal_independent_set(G, seed=i)

@@ -12,8 +12,9 @@ import random
 from matplotlib import pyplot as plt, colors
 from math import sin, cos, sqrt, atan2, radians
 
-fileA = "../DataSet/Listings.csv"
-fileB = "../DataSet/Listings_radius_100.csv"
+fileA = "../DataSet/Point.csv"
+fileB = "../DataSet/Point_radius_500.csv"
+k = 494
 class FairKCenter:
     # global
 
@@ -72,7 +73,7 @@ class FairKCenter:
         self.dic_id_NR = dict(sorted(self.dic_id_NR.items(), key=lambda item: item[1]))
         temp_dic_id_NR = self.dic_id_NR.copy()
 
-        while len(self.dic_center_id_NR.keys()) != self.K and len(temp_dic_id_NR.keys())!=0:
+        while len(temp_dic_id_NR.keys())!=0:
             #print(len(self.dic_center_id_NR.keys()))
             p = min(temp_dic_id_NR, key=temp_dic_id_NR.get)
             self.dic_center_id_NR[p] = self.dic_id_NR[p]
@@ -91,6 +92,7 @@ class FairKCenter:
             dist_c, ind_c = tree_c.query([[self.df.X[p], self.df.Y[p],self.df.Z[p]]], n)
             for dis,i in zip(dist_c[0],ind_c[0]):
                 if dis <= alpha*self.dic_id_NR[list_t[i]] :#+self.dic_id_NR[p]
+
                     temp_dic_id_NR.pop(list_t[i])
 
 
@@ -98,7 +100,7 @@ class FairKCenter:
             #########
 
         print('time to "two_fair_k_center" end is {}'.format(time.time() - start_time))
-        print("number of center is {}".format(len(self.dic_center_id_NR)))
+        #print("number of center is {}".format(len(self.dic_center_id_NR)))
         return len(self.dic_center_id_NR)
 
     def two_fair_k_center(self, alpha):
@@ -192,22 +194,46 @@ class FairKCenter:
         print("result arr rel ={}".format(result_arr))
         return result
     def result_distance(self):
+        k=500
         num_centers = len(self.dic_center_id_NR)
         colors_list = list(set(self.df.Colors))
         num_point = len(self.df.Colors)
         relative_dic={}
+        uniform_dic={}
         result_dis_dic= {}
+        uni = math.floor(k / len(colors_list))
         for c in colors_list:
-            #math.floor((list(self.df.Colors).count(c) / num_point)*num_centers )
-            relative_dic[c] =math.floor(num_centers/len(colors_list))
+            uniform_dic[c]=uni
+            relative_dic[c] =math.floor((list(self.df.Colors).count(c) /len(self.df.Colors)) *k)
             result_dis_dic[c] = len([i for i in self.dic_center_id_NR.keys() if self.df.Colors[i] ==c])
         #calculat distance
         dis = math.sqrt(sum(((relative_dic.get(d,0)/num_centers) - (result_dis_dic.get(d,0)/num_centers))**2 for d in set(relative_dic) | set(result_dis_dic)))
+        dis2 = math.sqrt(sum(((uniform_dic.get(d, 0) / num_centers) - (result_dis_dic.get(d, 0) / num_centers)) ** 2 for d in set(uniform_dic) | set(result_dis_dic)))
         print("relative_dic: {}".format(relative_dic))
+        print("uniform_dic: {}".format(uniform_dic))
         print("result_dis_dic: {}".format(result_dis_dic))
+        return dis,dis2
+
+    def result_distance2(self):
+        k=500
+        num_centers = len(self.dic_center_id_NR)
+        colors_list = list(set(self.df.Colors))
+        rand_list=["antiquewhite","blueviolet","bisque","burlywood","black","cadetblue","blue","azure","aqua","blanchedalmond"]
+        rand_dic_cal ={}
+        rand_dic={}
+        result_dis_dic={}
+        for c in rand_list:
+            rand_dic_cal[c] =list(self.df.Colors).count(c)
+        for c in colors_list:
+            result_dis_dic[c] = len([i for i in self.dic_center_id_NR.keys() if self.df.Colors[i] == c])
+            if c in rand_list:
+                rand_dic[c] = math.floor((rand_dic_cal[c]/sum(rand_dic_cal.values()))*k)
+            else:
+                rand_dic[c]=0
+
+        dis = math.sqrt(sum(((rand_dic.get(d,0)/num_centers) - (result_dis_dic.get(d,0)/num_centers))**2 for d in set(rand_dic) | set(result_dis_dic)))
+
         return dis
-
-
     def results2(self):
         self.update_dis_from_center()
         start_time = time.time()
@@ -232,8 +258,13 @@ class FairKCenter:
 
         print("#################")
         print(self.dic_center_id_NR.keys())
-        dis = self.result_distance()
+        dis,dis2 = self.result_distance()
         print("the distance between the result to relative set is {}".format(dis))
+        print("the distance between the result to uniform set is {}".format(dis2))
+        ##########
+        dis3 = self.result_distance2()
+        print("the distance between the result to rand set is {}".format(dis3))
+        ##########
 
         # rel = self.relative_calculation()
         # print("rel = {}".format(rel))
@@ -278,28 +309,31 @@ class FairKCenter:
 
 
 def main():
-    # start_time = time.time()
-    #
-    # fair = FairKCenter(1000)
+    # fair = FairKCenter(k)
     # fair.initialization_NR_dic()
-    # fair.fair_k_2(1.399)
-    # #fair.two_fair_k_center(1.399)  # 1.359
-    # # fair.save_group()
+    # res = fair.fair_k_2(1.3261226846527259)
+    # print(res)
     # fair.results2()
-    # print('time to end is {}'.format(time.time() - start_time))
-    #
     # fair.plot_point()
+
+
+        # print(fair.dic_center_id_NR.keys())
+        # print(len(fair.dic_center_id_NR.keys()))
+
     start_time = time.time()
     low =1
     high=2
     while low <= high:
         mid = (low+high)/2
         print("alpha(mid) ={}".format(mid))
-        fair = FairKCenter(100)
+        fair = FairKCenter(k)
         fair.initialization_NR_dic()
-        if fair.fair_k_2(mid) < fair.K:
+        res= fair.fair_k_2(mid)
+        print(res)
+        if res < fair.K:
             high = mid
-        elif fair.fair_k_2(mid) == fair.K:
+        elif res == fair.K:
+            print("mid={}".format(mid))
             fair.results2()
             print('time to end is {}'.format(time.time() - start_time))
 

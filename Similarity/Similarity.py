@@ -6,7 +6,7 @@ from statistics import mean
 import matplotlib.pyplot as plt
 
 file1 ="../DataSet/Point.csv"
-file2 ="../DataSet/Point_group_100_3.csv"
+file2 ="../DataSet/Point_group_1000_u.csv"
 
 def compute_similarity_before_change(df2,dic_center_and_colors):
     list_centers = list(df2.ID)
@@ -71,7 +71,11 @@ for i in df2.ID:
     dic_center_and_colors[i] = df1.Colors[i]
     c = df1.Colors[i]
     req_dic[c] = req_dic[c] + 1
+
+
 req_dic2 = req_dic.copy()
+
+print(req_dic2)
 
 # Before change
 no_change = compute_similarity_before_change(df2,dic_center_and_colors)
@@ -85,28 +89,30 @@ print("max_sum_no_change:{}".format(max_sum_no_change))
 print("avg_no_change:{}".format(avg_no_change))
 
 # Running Hungarian algorithm
+print("->>>result of Hungarian (MaxSum) algorithms<<<-")
+
 H = Hungarian.MaxSum(req_dic,file1,file2)
 H.convert()
 max_sum_list=H.play_hungarian_algo()
 max_min_hung = min(max_sum_list)
 max_sum_hung = sum(max_sum_list)
 avg_hung = mean(max_sum_list)
-print("->>>result of Hungarian (MaxSum) algorithms<<<-")
 print("max_sum_list:{}".format(max_sum_list))
 print("max_min_hung:{}".format(max_min_hung))
 print("max_sum_hung:{}".format(max_sum_hung))
 print("avg_hung:{}".format(avg_hung))
 
 # Running MaxMin algorithm
+print("->>>result of Hungarian2 (MaxMin) algorithms<<<-")
+
 M = Max_Min.MaxMin(req_dic2, dic_center_and_colors,file1,file2)
 M.sort_indexs_matrix()
 M.main_algo()
-dic_result =M.get_result()
+dic_result =M.get_result_perfect()
 max_min_list=M.get_result2(dic_result)
 max_min_hung2 = min(max_min_list)
 max_sum_hung2 = sum(max_min_list)
 avg_hung2 = mean(max_min_list)
-print("->>>result of Hungarian2 (MaxMin) algorithms<<<-")
 print("max_min_list:{}".format(max_min_list))
 print("max_min_hung2:{}".format(max_min_hung2))
 print("max_sum_hung2:{}".format(max_sum_hung2))
