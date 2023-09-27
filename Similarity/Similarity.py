@@ -4,9 +4,10 @@ import pandas as pd
 import numpy as np
 from statistics import mean
 import matplotlib.pyplot as plt
+from sklearn.neighbors import KDTree
 
-file1 ="../DataSet/Point.csv"
-file2 ="../DataSet/Point_group_1000_u.csv"
+file1 ="../DataSet/Banks.csv"
+file2 ="../DataSet/Banks_group_500_ran.csv"
 
 def compute_similarity_before_change(df2,dic_center_and_colors):
     list_centers = list(df2.ID)
@@ -18,6 +19,17 @@ def compute_similarity_before_change(df2,dic_center_and_colors):
         color = dic_center_and_colors[i]
         list_before_change.append(matrix[list_centers.index(i),list_colors.index(color)])
     return list_before_change
+
+def replace_center(df,dic_center_and_colors):
+    list_new_centers ={}
+    for k,v in dic_center_and_colors.items():
+        #print(k)
+        all_point = list([i for i in df.ID if df.Colors[i] ==v and i not in list_new_centers.values()])
+        tuple_color = tuple(zip(list(df1.X[all_point]), list(df1.Y[all_point]), list(df1.Z[all_point])))
+        tree_c = KDTree(np.array(list(tuple_color)))
+        dist_c, ind_c = tree_c.query([[df.X[k], df.Y[k], df.Z[k]]], 1)
+        list_new_centers[k]=all_point[ind_c[0][0]]
+    return list_new_centers
 
 def plot_result(list_before,list_hung1,list_hung2):
     labels = [i for i in range(len(list_before))]
@@ -84,6 +96,8 @@ max_sum_no_change = sum(no_change)
 avg_no_change = mean(no_change)
 print("->>>before running algorithms<<<-")
 print("no_change:{}".format(no_change))
+
+print("center:{} ".format(list(df2["ID"])))
 print("max_min_no_change:{}".format(max_min_no_change))
 print("max_sum_no_change:{}".format(max_sum_no_change))
 print("avg_no_change:{}".format(avg_no_change))
@@ -93,7 +107,9 @@ print("->>>result of Hungarian (MaxSum) algorithms<<<-")
 
 H = Hungarian.MaxSum(req_dic,file1,file2)
 H.convert()
-max_sum_list=H.play_hungarian_algo()
+max_sum_list , dic_center_and_colors2=H.play_hungarian_algo()
+new_centers_list = replace_center(df1,dic_center_and_colors2)
+print("new center:{}".format(new_centers_list))
 max_min_hung = min(max_sum_list)
 max_sum_hung = sum(max_sum_list)
 avg_hung = mean(max_sum_list)

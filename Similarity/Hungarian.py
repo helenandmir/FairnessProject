@@ -29,6 +29,7 @@ class MaxSum:
 
     def convert(self):
         max_val = self.Matrix.max()
+        self.Matrix[self.Matrix==0]=-max_val
         self.Matrix = [[max_val - e for e in row] for row in self.Matrix]
 
     def play_hungarian_algo(self):
@@ -42,7 +43,7 @@ class MaxSum:
         list_res =[i for i in self.Matrix_org[row_ind, col_ind]]
         self.result_Hungarian = list(list_res)
         #print("list_res ={}".format(list_res))
-        return list_res
+        return list_res,dic_plot
 
 
 
