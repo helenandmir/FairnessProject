@@ -108,6 +108,10 @@ print("->>>result of Hungarian (MaxSum) algorithms<<<-")
 H = Hungarian.MaxSum(req_dic,file1,file2)
 H.convert()
 max_sum_list , dic_center_and_colors2=H.play_hungarian_algo()
+for key in dic_center_and_colors2:
+    print(key, 'corresponds to', dic_center_and_colors[key])
+    print(key, 'corresponds to', dic_center_and_colors2[key])
+
 new_centers_list = replace_center(df1,dic_center_and_colors2)
 print("new center:{}".format(new_centers_list))
 max_min_hung = min(max_sum_list)

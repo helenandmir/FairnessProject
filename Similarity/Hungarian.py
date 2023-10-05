@@ -29,8 +29,9 @@ class MaxSum:
 
     def convert(self):
         max_val = self.Matrix.max()
-        self.Matrix[self.Matrix==0]=-max_val
+        #self.Matrix[self.Matrix==0]=-max_val
         self.Matrix = [[max_val - e for e in row] for row in self.Matrix]
+        self.Matrix=[[100 if e == 1 else e for e in row] for row in self.Matrix]
 
     def play_hungarian_algo(self):
         self.Matrix = np.array(self.Matrix)
