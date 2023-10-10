@@ -11,7 +11,7 @@ from scipy.spatial import KDTree
 from sklearn.neighbors import KDTree
 
 fileA ="../DataSet/Point.csv"
-fileB ="../LongTimeData/Point_group_250_ran_for_div.csv"
+fileB ="../LongTimeData/Point_group_1000_u_for_div.csv"
 
 
 df1 = pd.read_csv(fileA)
@@ -20,7 +20,7 @@ df2 = pd.read_csv(fileB)
 dic_point_to_ball ={}
 list_centers = list(df2["ID"])
 all_point = list(df1["ID"])
-Ball_list = list(df2["Ball"])
+Ball_list = list(df2["Ball1"])+list(df2["Ball2"])
 for i in list_centers:
     for l in [int(num) for num in Ball_list[list_centers.index(i)].strip('{}').split(',')]:
         dic_point_to_ball[l] = i

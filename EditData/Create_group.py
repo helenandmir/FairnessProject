@@ -9,9 +9,9 @@ from scipy.spatial import distance
 from sklearn.neighbors import KDTree
 import numpy as np
 fileA ="../DataSet/Point.csv"
-fileB="../DataSet/Point_radius_250.csv"
-fileC ="../LongTimeData/Point_group_250_r.csv"
-fileD ="../LongTimeData/Point_group_250_r_num.csv"
+fileB="../DataSet/Point_radius_1000.csv"
+fileC ="../LongTimeData/Point_group_1000_u.csv"
+fileD ="../LongTimeData/Point_group_1000_u_num.csv"
 
 df1 = pd.read_csv(fileA)
 df2 = pd.read_csv(fileB)

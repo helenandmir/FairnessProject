@@ -1,8 +1,8 @@
 import pandas as pd
 from scipy.optimize import linear_sum_assignment
 
-fileA ="../DataSet/Listings.csv"
-fileB ="../LongTimeData/Airbnb_group_750_u_for_div.csv"
+fileA ="../DataSet/Banks.csv"
+fileB ="../LongTimeData/Banks_group_500_ran_for_div.csv"
 
 
 df1 = pd.read_csv(fileA)
@@ -10,9 +10,9 @@ df2 = pd.read_csv(fileB)
 
 
 list_nodes_community = list(df2["ID"])
-list_nodes_div_property = list(set(df1["minimum_nights"]))
+list_nodes_div_property = list(set(df1["service"]))
 list_edges =[]
-dic_points_to_property = dict(zip(df1["ID"],df1["minimum_nights"]))
+dic_points_to_property = dict(zip(df1["ID"],df1["service"]))
 
 # After
 print("after")
@@ -34,7 +34,7 @@ rows, columns = linear_sum_assignment(distance_matrix)
 maximum_matching = [(list_nodes_community[row], list_nodes_div_property[column]) for row, column in zip(rows, columns)]
 
 # print("The maximum matching nodes are:")
-# for pair in maximum_matching:
+# for pair in maximum_matching:list_b
 #     print(pair)
 print("The maximum matching nodes are: {}".format(len(maximum_matching)))
 
