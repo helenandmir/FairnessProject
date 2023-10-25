@@ -16,7 +16,7 @@ import CreateGraph
 import matplotlib.pyplot as plt
 import MaxMatching
 fileA = "../DataSet/Listings.csv"
-fileB = "../DataSet/Listings_radius_1000.csv"
+fileB = "../PropoData/Listings_radius_10.csv"
 
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
@@ -255,7 +255,16 @@ class FairKCenter:
                 self.dic_center_loc.pop(i)
                 self.dic_center_ball.pop(i)
 
-
+    def add_center2(self, missing_colors):
+        self.update_dis_from_center()
+        for i in missing_colors:
+            point_in_i_color = {}
+            for j in self.dic_id_NR.keys():
+                if self.df.Colors[j] == i:
+                    point_in_i_color[j] = self.dic_dis_to_close_center[j]
+            max_key = max(point_in_i_color, key=point_in_i_color.get)
+            self.dic_center_id_NR[max_key] = self.dic_id_NR[max_key]
+            self.dic_dis_to_close_center[max_key] = 0
 
     def add_center(self,color_center):
         point_in_balls =[]
@@ -295,7 +304,7 @@ class FairKCenter:
 def main() :
     start_time = time.time()
 
-    k = 1000
+    k = 10
     k_temp =k
     col_list = ["Colors"]
     df1 = pd.read_csv(fileA, usecols=col_list)
@@ -304,6 +313,8 @@ def main() :
     num_type = len(type_set)
     color_list = list(set(df1.Colors))#list(matplotlib.colors.cnames.keys())[0:num_type]
     req_dic = {}
+    req_dic = {'cyan': 0, 'green': 4, 'blue': 5, 'orange': 0, 'pink': 0, 'gray': 0, 'purple': 0, 'red': 1, 'yellow': 0}
+
     center_colors = {}
     dic_orig = {}
     # #Creating relative requirements dictionary
@@ -327,12 +338,12 @@ def main() :
     #     center_colors[c] = 0
     #     color_list.remove(c)
 
-    #Creating uniform requirements dictionary
-
-    uni=math.floor(k/len(color_list))
-    print(uni)
-    for c in color_list:
-        req_dic[c] = uni
+    # #Creating uniform requirements dictionary
+    #
+    # uni=math.floor(k/len(color_list))
+    # print(uni)
+    # for c in color_list:
+    #     req_dic[c] = uni
 
 
     print(sum(req_dic.values()))
@@ -343,7 +354,7 @@ def main() :
     fair = FairKCenter(req_dic,color_list,k)
     fair.initialization_NR_dic(list(fair.df.ID))
 
-    fair.fair_k_2(0.01)
+    fair.fair_k_2(1)
     #fair.two_fair_k_center(0.01)
 
 
@@ -359,7 +370,20 @@ def main() :
     print(new_center)
     fair.replace_center(new_center)
     print([fair.df.Colors[id] for id in fair.dic_center_id_NR.keys()])
+
     #fair.add_center(IS.dic_color_center.keys())
+    req_dic_update = req_dic.copy()
+    for i in fair.dic_center_id_NR:
+        c = fair.df.Colors[i]
+        req_dic_update[c] = req_dic_update[c]-1
+    list_of_missing_colors =[]
+    for i in req_dic_update.keys():
+        for j in range(req_dic_update[i]):
+            list_of_missing_colors.append(i)
+
+    fair.add_center2(list_of_missing_colors)
+    print(fair.dic_center_id_NR.keys())
+    print("$$$$$$$$$$$$")
     fair.results2()
     print('time to end is {}'.format(time.time() - start_time))
     fair.plot_point()
