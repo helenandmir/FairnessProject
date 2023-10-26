@@ -8,12 +8,13 @@ import pandas as pd
 from scipy.spatial import KDTree
 from scipy.spatial import distance
 from sklearn.neighbors import KDTree
+import random
 
 from FairKCenter import CreateGraph
 
 fileA = "../DataSet/Listings.csv"
-fileB = "../PropoData/Listings_radius_8.csv"
-k=8
+fileB = "../PropoData/Listings_radius_10.csv"
+k=10
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
         self.req_dic = req_dic  # A Dictionary that holds the constraints, the desired number of representatives from each entry
@@ -464,18 +465,30 @@ def main() :
     for c in color_list:
         dic_orig[c] = list(df1.Colors).count(c)
 
-    # # Creating relative requirements dictionary
+    # # # Creating relative requirements dictionary
+    # #
+    # for c in color_list:
+    #     req_dic[c] = math.floor((list(df1.Colors).count(c) / len(df1.Colors)) * k)
+    # print(req_dic)
+    # print(dic_orig)
     #
-    for c in color_list:
-        req_dic[c] = math.floor((list(df1.Colors).count(c) / len(df1.Colors)) * k)
-    print(req_dic)
-    print(dic_orig)
     #
-    #
-    # # #Creating random requirements dictionary
-    # dic_c = {}
-    # dic_orig2 = dict([(i,dic_orig[i]) for i in dic_orig.keys() if dic_orig[i] > k])
-    #
+    # #Creating random requirements dictionary
+    dic_c = {}
+    dic_orig2 = dict([(i,dic_orig[i]) for i in dic_orig.keys() if dic_orig[i] > k])
+
+    selected_colors = random.sample(dic_orig.keys(), 3)
+    sum_of_selected_colors =0;
+    for i in selected_colors:
+        sum_of_selected_colors = sum_of_selected_colors + dic_orig[i]
+
+    for i in dic_orig:
+        if i not in selected_colors:
+            req_dic[i] = 0
+        else:
+            req_dic[i] = (dic_orig[i]/sum_of_selected_colors)*k
+
+
     # for i in range(1,15):
     #     i = random.choice(range(0,len(dic_orig2.keys())))
     #     c = list(dic_orig2.keys())[i]
@@ -485,17 +498,19 @@ def main() :
     #         req_dic[c] = 0
     #     else:
     #         req_dic[c] = math.floor((dic_c[c]/sum(dic_c.values()))*k)
+    print(req_dic)
+
+    # #Creating uniform requirements dictionary
+    # print(dic_orig)
+    # M = len([i for i in dic_orig.keys() if dic_orig[i]>31])
+    # uni=math.floor(k/M)
     #
-    # # #Creating uniform requirements dictionary
-    # # M = len([i for i in dic_orig.keys() if dic_orig[i]>31])
-    # # uni=math.floor(k/M)
-    # #
-    # # print(uni)
-    # # for c in color_list:
-    # #     if dic_orig[c]>31:
-    # #        req_dic[c] = uni
-    # #     else:
-    # #         req_dic[c] = 0
+    # print(uni)
+    # for c in color_list:
+    #     if dic_orig[c]>31:
+    #        req_dic[c] = uni
+    #     else:
+    #         req_dic[c] = 0
     # list_print = [i for i in req_dic.keys() if req_dic[i]>0]
     # print(list_print)
     # print(sum(req_dic.values()))
@@ -539,39 +554,40 @@ def main() :
     #         fair.plot_point()
     #         break
 
-    req_dic ={'purple': 0, 'gray': 0, 'pink': 0, 'yellow': 0, 'orange': 0, 'red': 1, 'blue': 4, 'green': 3, 'cyan': 0}
+    req_dic ={'gray': 3, 'cyan': 4, 'pink': 0, 'orange': 0, 'green': 0, 'red': 0, 'yellow': 3, 'blue': 0, 'purple': 0}
 
     color_list = list(req_dic.keys())
     print(req_dic)
-    mid = binary_search(req_dic,color_list,1)
-    print(mid)
+    # mid = binary_search(req_dic,color_list,1)
+    # print(mid)
 
-    # low = 2
-    # high = 3
-    # num_iter =0
-    # while low <= high and num_iter < 15:
-    #     num_iter = num_iter+1
-    #     mid = (low + high) / 2
-    #     print("alpha(mid) ={}".format(mid))
-    #     fair = FairKCenter(req_dic, color_list, k)
-    #     fair.initialization_NR_dic(list(fair.df.ID), 1)
-    #     if fair.two_fair_k_center(mid) < fair.K:
-    #         high = mid
-    #     elif fair.two_fair_k_center(mid) == fair.K:
-    #         fair.initialization_ball_center2()
-    #         C = CreateGraph.CR(fair.req_dic, "virginia_new.csv", fair.dic_center_ball)
-    #         C.reduse_points()
-    #         C.add_points()
-    #         C.create_nodes()
-    #         C.create_edges()
-    #         C.create_graph()
-    #         fair.results2()
-    #
-    #         fair.plot_point()
-    #
-    #         break
-    #     else:
-    #         low = mid
+    low = 1
+    high = 3
+    num_iter =0
+    while low <= high and num_iter < 30:
+        num_iter = num_iter+1
+        mid = (low + high) / 2
+        print("alpha(mid) ={}".format(mid))
+        fair = FairKCenter(req_dic, color_list, k)
+        fair.initialization_NR_dic(list(fair.df.ID), 1)
+        if fair.two_fair_k_center(mid) < fair.K:
+            low = mid
+        elif fair.two_fair_k_center(mid) == fair.K:
+            fair.initialization_ball_center2()
+            C = CreateGraph.CR(fair.req_dic, "virginia_new.csv", fair.dic_center_ball)
+            C.reduse_points()
+            C.add_points()
+            C.create_nodes()
+            C.create_edges()
+            C.create_graph()
+            fair.results2()
+
+            fair.plot_point()
+            print(mid)
+            break
+        else:
+            high = mid
+
 
 '''
     
