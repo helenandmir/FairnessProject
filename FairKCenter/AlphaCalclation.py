@@ -139,17 +139,18 @@ class FairKCenter:
 def main() :
     start_time = time.time()
 
-    k = 10
+    k = 6
     k_temp =k
     col_list = ["Colors"]
     df1 = pd.read_csv(fileA, usecols=col_list)
 
 
-    req_dic = {'cyan': 0, 'green': 4, 'blue': 5, 'orange': 0, 'pink': 0, 'gray': 0, 'purple': 0, 'red': 1, 'yellow': 0}
+    req_dic = {'cyan': 0, 'green': 2, 'blue': 4, 'orange': 0, 'pink': 0, 'gray': 0, 'purple': 0, 'red': 1, 'yellow': 1}
 
 
     color_list = list(df1.Colors)#list(matplotlib.colors.cnames.keys())[0:num_type]
-    list_centers =[13331,6757,4280,62368,13344,6580,37787,66793,63846,7827]
+    list_centers =[18736,39524,632,25329,52159,14626,40037,40566]
+    list_centers = [56128,70454,19889,55011,20382,48560]
     fair = FairKCenter(req_dic,color_list,k)
     fair.initialization_NR_dic(list(fair.df.ID), list_centers)
     fair.update_dis_from_center()

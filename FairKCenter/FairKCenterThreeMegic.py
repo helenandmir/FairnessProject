@@ -13,7 +13,7 @@ import random
 from FairKCenter import CreateGraph
 
 fileA = "../DataSet/Listings.csv"
-fileB = "../PropoData/Listings_radius_10.csv"
+fileB = "../PropoData/Listings_radius_8.csv"
 k=10
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
@@ -465,46 +465,39 @@ def main() :
     for c in color_list:
         dic_orig[c] = list(df1.Colors).count(c)
 
-    # # # Creating relative requirements dictionary
-    # #
-    # for c in color_list:
-    #     req_dic[c] = math.floor((list(df1.Colors).count(c) / len(df1.Colors)) * k)
-    # print(req_dic)
-    # print(dic_orig)
+    # # Creating relative requirements dictionary
     #
-    #
+    for c in color_list:
+        req_dic[c] = math.floor((list(df1.Colors).count(c) / len(df1.Colors)) * k)
+    print(req_dic)
+    print(dic_orig)
+
+
     # #Creating random requirements dictionary
     dic_c = {}
     dic_orig2 = dict([(i,dic_orig[i]) for i in dic_orig.keys() if dic_orig[i] > k])
 
-    selected_colors = random.sample(dic_orig.keys(), 3)
-    sum_of_selected_colors =0;
-    for i in selected_colors:
-        sum_of_selected_colors = sum_of_selected_colors + dic_orig[i]
-
-    for i in dic_orig:
-        if i not in selected_colors:
-            req_dic[i] = 0
-        else:
-            req_dic[i] = (dic_orig[i]/sum_of_selected_colors)*k
-
-
-    # for i in range(1,15):
-    #     i = random.choice(range(0,len(dic_orig2.keys())))
-    #     c = list(dic_orig2.keys())[i]
-    #     dic_c[c] = dic_orig2[c]
-    # for c in color_list:
-    #     if c not in dic_c.keys():
-    #         req_dic[c] = 0
+    # selected_colors = random.sample(dic_orig.keys(), 3)
+    # sum_of_selected_colors =0;
+    # for i in selected_colors:
+    #     sum_of_selected_colors = sum_of_selected_colors + dic_orig[i]
+    #
+    # for i in dic_orig:
+    #     if i not in selected_colors:
+    #         req_dic[i] = 0
     #     else:
-    #         req_dic[c] = math.floor((dic_c[c]/sum(dic_c.values()))*k)
+    #         req_dic[i] = (dic_orig[i]/sum_of_selected_colors)*k
+
+
+
     print(req_dic)
 
     # #Creating uniform requirements dictionary
     # print(dic_orig)
     # M = len([i for i in dic_orig.keys() if dic_orig[i]>31])
     # uni=math.floor(k/M)
-    #
+    # if uni == 0:
+    #     uni =1
     # print(uni)
     # for c in color_list:
     #     if dic_orig[c]>31:
@@ -516,6 +509,7 @@ def main() :
     # print(sum(req_dic.values()))
     # print("requirement dictionary:")
     # print(req_dic)
+    # print(dic_orig)
     # color_list = list(df1.Colors)#list(matplotlib.colors.cnames.keys())[0:num_type]
     # for i in range(1,len(color_list)):
     #     print("->>i={}<<-".format(i))

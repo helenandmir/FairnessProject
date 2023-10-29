@@ -16,7 +16,7 @@ import CreateGraph
 import matplotlib.pyplot as plt
 import MaxMatching
 fileA = "../DataSet/Listings.csv"
-fileB = "../PropoData/Listings_radius_10.csv"
+fileB = "../PropoData/Listings_radius_8.csv"
 
 class FairKCenter:
     def __init__(self,req_dic,color_list,k):
@@ -292,7 +292,7 @@ class FairKCenter:
 def main() :
     start_time = time.time()
 
-    k = 10
+    k = 8
     k_temp =k
     col_list = ["Colors"]
     df1 = pd.read_csv(fileA, usecols=col_list)
@@ -301,7 +301,7 @@ def main() :
     num_type = len(type_set)
     color_list = list(set(df1.Colors))#list(matplotlib.colors.cnames.keys())[0:num_type]
 
-    req_dic = {'gray': 3, 'cyan': 4, 'pink': 0, 'orange': 0, 'green': 0, 'red': 0, 'yellow': 3, 'blue': 0, 'purple': 0}
+    req_dic = {'red': 1, 'gray': 1, 'orange': 1, 'yellow': 1, 'purple': 1, 'blue': 1, 'pink': 0, 'cyan': 1, 'green': 1}
     print("req_dic = {}".format(req_dic))
 
     color_list = list(df1.Colors)  # list(matplotlib.colors.cnames.keys())[0:num_type]
